@@ -1,16 +1,22 @@
-# java base image
-FROM openjdk:21-jdk-slim
-
-LABEL maintainer="amolkkatte1@gmail.com"
+# Stage 1: Maven + Java 21 for building
+FROM maven:3.9.4-eclipse-temurin-21 AS builder
 
 WORKDIR /app
-# port to access app
+
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+# Stage 2: Minimal Java runtime to run the JAR
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/target/pathlabmaster-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8088
 
 ENV APP_ENV=default
-RUN mvn clean package -DskipTests
-# app jar file
-ADD target/pathlabmaster-0.0.1-SNAPSHOT.jar mfm-0.0.1-SNAPSHOT.jar
 
-# run app
-CMD java -Xmx1024m -jar /app/mfm-0.0.1-SNAPSHOT.jar
+CMD ["java", "-Xmx1024m", "-jar", "/app/app.jar"]

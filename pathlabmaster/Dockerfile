@@ -8,7 +8,7 @@ WORKDIR /app
 EXPOSE 8088
 
 ENV APP_ENV=default
-
+RUN mvn clean package -DskipTests
 # app jar file
 ADD target/pathlabmaster-0.0.1-SNAPSHOT.jar mfm-0.0.1-SNAPSHOT.jar
 

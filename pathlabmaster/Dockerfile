@@ -1,23 +1,21 @@
-###################################
-# Stage 1: Build the application
-###################################
-FROM maven:3.9.6-eclipse-temurin-17 AS build
-WORKDIR /app
+# Stage 1: Maven + Java 21 for building
+FROM maven:3.9.4-eclipse-temurin-21 AS builder
 
-COPY pom.xml .
-COPY src ./src
+WORKDIR /app
+COPY pathlabmaster/pom.xml .
+COPY pathlabmaster/src ./src
 
 RUN mvn clean package -DskipTests
 
+# Stage 2: Minimal Java runtime to run the JAR
+FROM openjdk:21-jdk-slim
 
-###################################
-# Stage 2: Run the application
-###################################
-FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=builder /app/target/pathlabmaster-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8088
 
-CMD ["java", "-Xmx1024m", "-jar", "app.jar"]
+ENV APP_ENV=default
+
+CMD ["java", "-Xmx1024m", "-jar", "/app/app.jar"]

@@ -1,23 +1,16 @@
-###################################
-# Stage 1: Build the application
-###################################
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# java base image
+FROM openjdk:21-jdk-slim
+
+LABEL maintainer="amolkkatte1@gmail.com"
+
 WORKDIR /app
-
-COPY pom.xml .
-COPY src ./src
-
-RUN mvn clean package -DskipTests
-
-
-###################################
-# Stage 2: Run the application
-###################################
-FROM eclipse-temurin:17-jdk
-WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
-
+# port to access app
 EXPOSE 8088
 
-CMD ["java", "-Xmx1024m", "-jar", "app.jar"]
+ENV APP_ENV=default
+
+# app jar file
+ADD target/pathlabmaster-0.0.1-SNAPSHOT.jar mfm-0.0.1-SNAPSHOT.jar
+
+# run app
+CMD java -Xmx1024m -jar /app/mfm-0.0.1-SNAPSHOT.jar

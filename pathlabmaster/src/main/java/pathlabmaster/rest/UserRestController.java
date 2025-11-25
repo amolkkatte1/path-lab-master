@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserRestController {
 	@GetMapping("/add")
 	public String sayHello() {
-		return "Hello, World! Amol";
+		return "Hello, World! Amol!!!!!!!!!";
 	}
 
 

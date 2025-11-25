@@ -1,16 +1,23 @@
-# java base image
-FROM eclipse-temurin:17-jdk
-
-LABEL maintainer="amolkkatte1@gmail.com"
-
+###################################
+# Stage 1: Build the application
+###################################
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-# port to access app
+
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+
+###################################
+# Stage 2: Run the application
+###################################
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8088
 
-ENV APP_ENV=default
-
-# app jar file
-ADD target/pathlabmaster-0.0.1-SNAPSHOT.jar mfm-0.0.1-SNAPSHOT.jar
-
-# run app
-CMD java -Xmx1024m -jar /app/mfm-0.0.1-SNAPSHOT.jar
+CMD ["java", "-Xmx1024m", "-jar", "app.jar"]

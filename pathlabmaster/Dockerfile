@@ -8,7 +8,7 @@ COPY pathlabmaster/src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Minimal Java runtime to run the JAR
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 

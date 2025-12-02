@@ -1,0 +1,66 @@
+package pathlabmaster.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import pathlabmaster.dao.UserMasterRepository;
+import pathlabmaster.pojo.UserMaster;
+import pathlabmaster.utility.Response;
+import pathlabmaster.utility.ResponseStatus;
+import pathlabmaster.utility.Utility;
+
+@Service
+public class UserService implements IUserService {
+
+	@Autowired
+	private UserMasterRepository userRepo;
+
+	@Override
+	public Response createUser(UserMaster userDetails) {
+		userDetails.setUserId(Utility.generateId());
+		UserMaster savedUser = userRepo.save(userDetails);
+		System.out.println(savedUser.getUserId()); 
+		return new Response(ResponseStatus.success, 1, "User created successfully", savedUser);
+	}
+
+	@Override
+	public Response updateUser(UserMaster userDetails) {
+		UserMaster savedUser = userRepo.save(userDetails);
+		System.out.println(savedUser.getUserId()); 
+		return new Response(ResponseStatus.success, 1, "User Update successfully", savedUser);
+	}
+	
+	@Override
+	public Response getUser(UserMaster userDetails) {
+		Optional<UserMaster> optionalUser = userRepo.findById(userDetails.getUserId());
+		UserMaster user = null;
+		if (optionalUser.isPresent()) {
+		    user = optionalUser.get();
+		} else {
+		    throw new RuntimeException("User not found");
+		}
+		return new Response(ResponseStatus.success, 1, "Get User successfully", user);
+	}
+
+	@Override
+	public Response getUserList() {
+		List<UserMaster> userList = userRepo.findAll();
+		return new Response(ResponseStatus.success, 1, "Get User List successfully", userList);
+	}
+
+	@Override
+	public Response deleteUser(UserMaster userDetails) {
+		Optional<UserMaster> optionalUser = userRepo.findById(userDetails.getUserId());
+		UserMaster user = null;
+		if (optionalUser.isPresent()) {
+		    user = optionalUser.get();
+		} else {
+		    throw new RuntimeException("User not found");
+		}
+		userRepo.deleteById(userDetails.getUserId());
+		return new Response(ResponseStatus.success, 1, "Delete User successfully", user);
+	}
+}

@@ -1,16 +1,68 @@
 package pathlabmaster.rest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import pathlabmaster.pojo.UserMaster;
+import pathlabmaster.service.IUserService;
+import pathlabmaster.utility.Response;
 
 @RestController
 @RequestMapping("/user")
 public class UserRestController {
-	@GetMapping("/add")
+	@Autowired
+	IUserService userService;
+	ObjectMapper mapper = new ObjectMapper();
+	
+	@GetMapping("/")
 	public String sayHello() {
-		return "Hello, World! Amol!!!!!!!!!";
+		return "User Service Working !";
 	}
-
-
+	
+	@PostMapping("/create")
+	public Response createUser(@RequestBody UserMaster userDetails) throws JsonProcessingException {
+		System.out.println("Create User Api Started : "+mapper.writeValueAsString(userDetails));
+		Response response =userService.createUser(userDetails);
+		System.out.println("Create User Api Completed : "+mapper.writeValueAsString(response));
+	    return response;
+	}
+	
+	@PostMapping("/update")
+	public Response updateUser(@RequestBody UserMaster userDetails) throws JsonProcessingException {
+		System.out.println("Update User Api Started : "+mapper.writeValueAsString(userDetails));
+		Response response =userService.updateUser(userDetails);
+		System.out.println("Update User Api Completed : "+mapper.writeValueAsString(response));
+	    return response;
+	}
+	
+	@PostMapping("/get")
+	public Response getUser(@RequestBody UserMaster userDetails) throws JsonProcessingException {
+		System.out.println("Get User Api Started : "+mapper.writeValueAsString(userDetails));
+		Response response =userService.getUser(userDetails);
+		System.out.println("Get User Api Completed : "+mapper.writeValueAsString(response));
+	    return response;
+	}
+	
+	@GetMapping("/list")
+	public Response getUserList() throws JsonProcessingException{
+		System.out.println("Get User List Api Started ");
+		Response response =userService.getUserList();
+		System.out.println("Get User List Api Completed : "+mapper.writeValueAsString(response));
+	    return response;
+	}
+	
+	@PostMapping("/delete")
+	public Response deleteUser(@RequestBody UserMaster userDetails) throws JsonProcessingException {
+		System.out.println("Delete User Api Started : "+mapper.writeValueAsString(userDetails));
+		Response response =userService.deleteUser(userDetails);
+		System.out.println("Delete User Api Completed : "+mapper.writeValueAsString(response));
+	    return response;
+	}
 }

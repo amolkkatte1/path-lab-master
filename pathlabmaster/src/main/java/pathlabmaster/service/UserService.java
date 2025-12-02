@@ -21,6 +21,8 @@ public class UserService implements IUserService {
 	@Override
 	public Response createUser(UserMaster userDetails) {
 		userDetails.setUserId(Utility.generateId());
+		userDetails.setUpdatedAt(Utility.getCurrentTime());
+		userDetails.setCreatedAt(Utility.getCurrentTime());
 		UserMaster savedUser = userRepo.save(userDetails);
 		System.out.println(savedUser.getUserId()); 
 		return new Response(ResponseStatus.success, 1, "User created successfully", savedUser);
@@ -28,6 +30,7 @@ public class UserService implements IUserService {
 
 	@Override
 	public Response updateUser(UserMaster userDetails) {
+		userDetails.setUpdatedAt(Utility.getCurrentTime());
 		UserMaster savedUser = userRepo.save(userDetails);
 		System.out.println(savedUser.getUserId()); 
 		return new Response(ResponseStatus.success, 1, "User Update successfully", savedUser);

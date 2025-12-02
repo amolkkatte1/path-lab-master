@@ -1,7 +1,5 @@
 package pathlabmaster.pojo;
 
-import java.sql.Date;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -29,10 +27,10 @@ public class UserMaster {
     private String userName;
     private String password;
     private String userTypeName;
-	private Date updatedAt;
-	private String updatedBy;
-	private Date createdAt;
-	private String createdBy;
+	private String updatedAt;
+	private Long updatedBy;
+	private String createdAt;
+	private Long createdBy;
 	public UserMaster() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -151,28 +149,28 @@ public class UserMaster {
 	public void setUserTypeName(String userTypeName) {
 		this.userTypeName = userTypeName;
 	}
-	public Date getUpdatedAt() {
+	public String getUpdatedAt() {
 		return updatedAt;
 	}
-	public void setUpdatedAt(Date updatedAt) {
+	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	public String getUpdatedBy() {
+	public Long getUpdatedBy() {
 		return updatedBy;
 	}
-	public void setUpdatedBy(String updatedBy) {
+	public void setUpdatedBy(Long updatedBy) {
 		this.updatedBy = updatedBy;
 	}
-	public Date getCreatedAt() {
+	public String getCreatedAt() {
 		return createdAt;
 	}
-	public void setCreatedAt(Date createdAt) {
+	public void setCreatedAt(String createdAt) {
 		this.createdAt = createdAt;
 	}
-	public String getCreatedBy() {
+	public Long getCreatedBy() {
 		return createdBy;
 	}
-	public void setCreatedBy(String createdBy) {
+	public void setCreatedBy(Long createdBy) {
 		this.createdBy = createdBy;
 	}
 	@Override

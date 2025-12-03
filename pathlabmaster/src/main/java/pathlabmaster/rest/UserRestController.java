@@ -1,6 +1,7 @@
 package pathlabmaster.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import pathlabmaster.utility.Utility;
 
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = "http://localhost:5174")
 public class UserRestController {
 	@Autowired
 	IUserService userService;
@@ -66,4 +68,13 @@ public class UserRestController {
 		System.out.println("Delete User Api Completed : "+Utility.toJsonString(response));
 	    return response;
 	}
+	
+	@PostMapping("/login")
+	public Response login(@RequestBody UserMaster userDetails) throws JsonProcessingException {
+		System.out.println("User login Api Started : "+Utility.toJsonString(userDetails));
+		Response response =userService.login(userDetails);
+		System.out.println("User login Api Completed : "+Utility.toJsonString(response));
+	    return response;
+	}
+	
 }

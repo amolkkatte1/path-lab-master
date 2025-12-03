@@ -66,4 +66,15 @@ public class UserService implements IUserService {
 		userRepo.deleteById(userDetails.getUserId());
 		return new Response(ResponseStatus.success, 1, "Delete User successfully", user);
 	}
+
+	@Override
+	public Response login(UserMaster userDetails) {
+		Optional<UserMaster> optionalUser = userRepo.findByUserNameAndPassword(userDetails.getUserName(),userDetails.getPassword());
+		if (optionalUser.isPresent()) {
+		    UserMaster user = optionalUser.get();
+		    return new Response(ResponseStatus.success, 1, "Login Successfully", user);
+		} else {
+			return new Response(ResponseStatus.failure, 0, "Invalid username or password");
+		}
+	}
 }

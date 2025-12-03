@@ -15,4 +15,6 @@ public interface IUserService {
 
 	Response deleteUser(UserMaster userDetails);
 
+	Response login(UserMaster userDetails);
+
 }

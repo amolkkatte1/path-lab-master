@@ -26,7 +26,7 @@ public class UserRestController {
 	
 	@GetMapping("/")
 	public String sayHello() {
-		return "User Service Working !";
+		return "User Service Working Amol!";
 	}
 	
 	@PostMapping("/create")

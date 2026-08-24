@@ -4,24 +4,26 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.RestClient;
 
 public class SelfApiCron {
-	private final RestClient restClient;
 
-	public SelfApiCron(RestClient.Builder builder) {
-		this.restClient = builder.build();
-	}
+    private final RestClient restClient;
 
-	@Scheduled(cron = "0 */2 * * * *")
-	public void callSelfApi() {
+    public SelfApiCron(RestClient.Builder builder) {
+        this.restClient = builder.build();
+    }
 
-		try {
-			String response = restClient.get().uri("https://path-lab-master.onrender.com/user").retrieve()
-					.body(String.class);
+    @Scheduled(cron = "*/30 * * * * *")
+    public void callSelfApi() {
 
-			System.out.println("Self API called successfully: " + response);
+        try {
+            String response = restClient.get()
+                    .uri("https://path-lab-master.onrender.com/user")
+                    .retrieve()
+                    .body(String.class);
 
-		} catch (Exception e) {
-			System.err.println("Self API call failed: " + e.getMessage());
-		}
-	}
+            System.out.println("Self API called successfully: " + response);
 
+        } catch (Exception e) {
+            System.err.println("Self API call failed: " + e.getMessage());
+        }
+    }
 }

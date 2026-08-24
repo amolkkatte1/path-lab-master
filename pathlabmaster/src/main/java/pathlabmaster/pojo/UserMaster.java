@@ -31,7 +31,10 @@ public class UserMaster {
 	private Long updatedBy;
 	private String createdAt;
 	private Long createdBy;
-	
+	public UserMaster() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 	public Long getUserId() {
 		return userId;
 	}

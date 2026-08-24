@@ -16,7 +16,7 @@ public class SelfApiCron {
 
         try {
             String response = restClient.get()
-                    .uri("https://path-lab-master.onrender.com/user")
+                    .uri("https://path-lab-master.onrender.com/user/")
                     .retrieve()
                     .body(String.class);
 

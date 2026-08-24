@@ -1,8 +1,10 @@
 package pathlabmaster.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+@Component
 public class SelfApiCron {
 
     private final RestClient restClient;
@@ -13,6 +15,8 @@ public class SelfApiCron {
 
     @Scheduled(cron = "*/30 * * * * *")
     public void callSelfApi() {
+
+        System.out.println("Cron started...");
 
         try {
             String response = restClient.get()

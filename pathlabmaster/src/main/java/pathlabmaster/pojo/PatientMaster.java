@@ -1,12 +1,13 @@
 package pathlabmaster.pojo;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "PatientMaster")
 public class PatientMaster {
-
+	@Id
 	private Long patientId;
 	private String firstName;
 	private String middleName;

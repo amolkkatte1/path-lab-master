@@ -38,16 +38,8 @@ private TestMasterRepository testRepo;
 	}
 	@Override
 	public Response getTestList() {
-//		TestMaster testDetails =  new ;
-//		Optional<TestMaster> optionalTest = testRepo.findById(testDetails.getTestId());
-//		TestMaster test= null;
-//		if (optionalTest.isPresent()) {
-//		    test = optionalTest.get();
-//		} else {
-//		    throw new RuntimeException("	Test not found");
-//		}
-		return new Response(ResponseStatus.success, 1, "Get Test successfully", null);
-	
+		List<TestMaster> testList = testRepo.findAll();
+		return new Response(ResponseStatus.success, 1, "Get Test List successfully", testList);
 	}
 	@Override
 	public Response deleteTest(TestMaster testDetails) {
@@ -64,8 +56,15 @@ private TestMasterRepository testRepo;
 	}
 	@Override
 	public Response getTest(TestMaster testDetails) {
-		List<TestMaster> testList = testRepo.findAll();
-		return new Response(ResponseStatus.success, 1, "Get Test List successfully", testList);
+		Optional<TestMaster> optionalTest = testRepo.findById(testDetails.getTestId());
+		TestMaster test= null;
+		if (optionalTest.isPresent()) {
+		    test = optionalTest.get();
+		} else {
+		    throw new RuntimeException("	Test not found");
+		}
+		return new Response(ResponseStatus.success, 1, "Get Test successfully", test);
+	
 		}
 	}
 

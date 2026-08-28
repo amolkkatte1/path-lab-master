@@ -16,6 +16,8 @@ public class TestMaster {
 	private String serviceName;
 	private String serviceShortName;
 	private Long serviceGroupId;
+	private String labName;
+	private Long labId;
 	private Long serviceGroupName;
 	private Integer testCharges;
 	private Long createdBy;
@@ -140,13 +142,30 @@ public class TestMaster {
 		this.updatedAt = updatedAt;
 	}
 
+	public String getLabName() {
+		return labName;
+	}
+
+	public void setLabName(String labName) {
+		this.labName = labName;
+	}
+
+	public Long getLabId() {
+		return labId;
+	}
+
+	public void setLabId(Long labId) {
+		this.labId = labId;
+	}
+
 	@Override
 	public String toString() {
 		return "TestMaster [testId=" + testId + ", testName=" + testName + ", parameterGroupList=" + parameterGroupList
 				+ ", parameterList=" + parameterList + ", serviceId=" + serviceId + ", serviceName=" + serviceName
-				+ ", serviceShortName=" + serviceShortName + ", serviceGroupId=" + serviceGroupId
-				+ ", serviceGroupName=" + serviceGroupName + ", testCharges=" + testCharges + ", createdBy=" + createdBy
-				+ ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+				+ ", serviceShortName=" + serviceShortName + ", serviceGroupId=" + serviceGroupId + ", labName="
+				+ labName + ", labId=" + labId + ", serviceGroupName=" + serviceGroupName + ", testCharges="
+				+ testCharges + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt
+				+ ", updatedAt=" + updatedAt + "]";
 	}
 
 }

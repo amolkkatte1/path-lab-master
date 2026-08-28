@@ -16,7 +16,7 @@ import pathlabmaster.utility.Response;
 import pathlabmaster.utility.Utility;
 
 @RestController
-@RequestMapping("/TestGroup")
+@RequestMapping("/testGroup")
 public class TestGroupRestController {
 //	@Autowired
 //	ITestGroupService testGroupService;

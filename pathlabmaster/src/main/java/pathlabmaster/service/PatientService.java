@@ -68,11 +68,11 @@ public class PatientService implements IPatientService {
 	}
 
 	@Override
-	public Response getPatientByLabId(PatientMaster patientDetails) {
-		List<PatientMaster> patientList = patientRepo.findByLabId(patientDetails.getLabId());
+	public Response getPatientByLabId(Long labId) {
+		List<PatientMaster> patientList = patientRepo.findByLabId(labId);
 
 		if (patientList == null || patientList.isEmpty()) {
-			return new Response(ResponseStatus.success, 0, "No Patient found for LabId: " + patientDetails.getLabId(),
+			return new Response(ResponseStatus.success, 0, "No Patient found for LabId: " + labId,
 					patientList);
 		}
 

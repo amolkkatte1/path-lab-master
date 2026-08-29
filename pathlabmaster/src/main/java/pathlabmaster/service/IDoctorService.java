@@ -16,6 +16,6 @@ public interface IDoctorService {
 
 	Response deleteDoctor(DoctorMaster doctorDetails);
 
-	Response getDoctorByLabId(DoctorMaster doctorDetails);
+	Response getDoctorByLabId(Long labId);
 
 }

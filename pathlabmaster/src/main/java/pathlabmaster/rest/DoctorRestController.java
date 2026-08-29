@@ -3,6 +3,7 @@ package pathlabmaster.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,11 +71,11 @@ public class DoctorRestController {
 	    return response;
 	}
 	
-	@PostMapping("/list/labId")
-	public Response getDoctorByLabId(@RequestBody DoctorMaster doctorDetails) throws JsonProcessingException {
-		System.out.println("Get getDoctorByLabId Api Started : "+Utility.toJsonString(doctorDetails));
-		Response response =doctorService.getDoctorByLabId(doctorDetails);
-		System.out.println("Get getDoctorByLabId Api Completed : "+Utility.toJsonString(response));
-	    return response;
+	@GetMapping("/list/labId/{labId}")
+	public Response getDoctorByLabId(@PathVariable Long labId) throws JsonProcessingException {
+		System.out.println("Get getDoctorByLabId Api Started : " + labId);
+		Response response = doctorService.getDoctorByLabId(labId);
+		System.out.println("Get getDoctorByLabId Api Completed : " + Utility.toJsonString(response));
+		return response;
 	}
 }

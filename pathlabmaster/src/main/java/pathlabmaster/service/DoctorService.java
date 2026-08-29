@@ -68,11 +68,11 @@ public class DoctorService implements IDoctorService {
 	}
 
 	@Override
-	public Response getDoctorByLabId(DoctorMaster doctorDetails) {
-		List<DoctorMaster> doctorList = doctorRepo.findByLabId(doctorDetails.getLabId());
+	public Response getDoctorByLabId(Long labId) {
+		List<DoctorMaster> doctorList = doctorRepo.findByLabId(labId);
 
 		if (doctorList == null || doctorList.isEmpty()) {
-			return new Response(ResponseStatus.success, 0, "No Doctor found for LabId: " + doctorDetails.getLabId(),
+			return new Response(ResponseStatus.success, 0, "No Doctor found for LabId: " + labId,
 					doctorList);
 		}
 

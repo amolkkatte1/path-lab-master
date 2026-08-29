@@ -69,6 +69,13 @@ public class PatientRestController {
 	    return response;
 	}
 	
+	@PostMapping("/list/labId")
+	public Response getPatientByLabId(@RequestBody PatientMaster patientDetails) throws JsonProcessingException {
+		System.out.println("Get getPatientByLabId Api Started : "+Utility.toJsonString(patientDetails));
+		Response response =patientService.getPatientByLabId(patientDetails);
+		System.out.println("Get getPatientByLabId Api Completed : "+Utility.toJsonString(response));
+	    return response;
+	}
 	
 	
 }

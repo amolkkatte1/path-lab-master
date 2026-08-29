@@ -17,6 +17,8 @@ public class PatientMaster {
 	private String mailId;
 	private String gender;
 	private String dateOfBirth;
+	private Long doctorId;
+	private String doctorName;
 	private Integer year;
 	private Integer month;
 	private Integer days;
@@ -178,5 +180,32 @@ public class PatientMaster {
 
 	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public Long getDoctorId() {
+		return doctorId;
+	}
+
+	public void setDoctorId(Long doctorId) {
+		this.doctorId = doctorId;
+	}
+
+	public String getDoctorName() {
+		return doctorName;
+	}
+
+	public void setDoctorName(String doctorName) {
+		this.doctorName = doctorName;
+	}
+
+	@Override
+	public String toString() {
+		return "PatientMaster [patientId=" + patientId + ", firstName=" + firstName + ", middleName=" + middleName
+				+ ", lastName=" + lastName + ", mobileNumber=" + mobileNumber + ", prefix=" + prefix + ", mailId="
+				+ mailId + ", gender=" + gender + ", dateOfBirth=" + dateOfBirth + ", doctorId=" + doctorId
+				+ ", doctorName=" + doctorName + ", year=" + year + ", month=" + month + ", days=" + days
+				+ ", adharNumber=" + adharNumber + ", labName=" + labName + ", labId=" + labId + ", createdBy="
+				+ createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
+				+ "]";
 	}
 }

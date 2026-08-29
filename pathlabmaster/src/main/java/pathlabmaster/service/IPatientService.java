@@ -15,5 +15,7 @@ public interface IPatientService {
 
 	Response deletePatient(PatientMaster patientDetails);
 
+	Response getPatientByLabId(PatientMaster patientDetails);
+
 
 }

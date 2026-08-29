@@ -67,4 +67,16 @@ public class DoctorService implements IDoctorService {
 		return new Response(ResponseStatus.success, 1, "Delete Doctor successfully", Doctor);
 	}
 
+	@Override
+	public Response getDoctorByLabId(DoctorMaster doctorDetails) {
+		List<DoctorMaster> doctorList = doctorRepo.findByLabId(doctorDetails.getLabId());
+
+		if (doctorList == null || doctorList.isEmpty()) {
+			return new Response(ResponseStatus.success, 0, "No Doctor found for LabId: " + doctorDetails.getLabId(),
+					doctorList);
+		}
+
+		return new Response(ResponseStatus.success, 1, "Get Doctor List by LabId successfully", doctorList);
+	}
+
 }

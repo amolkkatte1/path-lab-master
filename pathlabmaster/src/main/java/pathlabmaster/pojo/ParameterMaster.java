@@ -18,7 +18,9 @@ public class ParameterMaster {
     private String formula;
     private Integer upperRange;
     private Integer lowerRange;
+    @Column(nullable = true)
     private Integer extrimUpperRange;
+    @Column(nullable = true)
     private Integer extrimLowerRange;
     private Integer lowerAgeRange;
     private Integer upperAgeRange;

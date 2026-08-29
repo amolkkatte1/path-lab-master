@@ -67,5 +67,16 @@ public class PatientService implements IPatientService {
 		return new Response(ResponseStatus.success, 1, "Delete Patient successfully", patient);
 	}
 
-	
+	@Override
+	public Response getPatientByLabId(PatientMaster patientDetails) {
+		List<PatientMaster> patientList = patientRepo.findByLabId(patientDetails.getLabId());
+
+		if (patientList == null || patientList.isEmpty()) {
+			return new Response(ResponseStatus.success, 0, "No Patient found for LabId: " + patientDetails.getLabId(),
+					patientList);
+		}
+
+		return new Response(ResponseStatus.success, 1, "Get Patient List by LabId successfully", patientList);
+	}
+
 }

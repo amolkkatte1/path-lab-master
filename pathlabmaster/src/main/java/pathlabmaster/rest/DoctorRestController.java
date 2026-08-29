@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pathlabmaster.pojo.DoctorMaster;
+import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.service.IDoctorService;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.Utility;
@@ -69,5 +70,11 @@ public class DoctorRestController {
 	    return response;
 	}
 	
-	
+	@PostMapping("/list/labId")
+	public Response getDoctorByLabId(@RequestBody DoctorMaster doctorDetails) throws JsonProcessingException {
+		System.out.println("Get getDoctorByLabId Api Started : "+Utility.toJsonString(doctorDetails));
+		Response response =doctorService.getDoctorByLabId(doctorDetails);
+		System.out.println("Get getDoctorByLabId Api Completed : "+Utility.toJsonString(response));
+	    return response;
+	}
 }

@@ -1,5 +1,5 @@
 package pathlabmaster.pojo;
-
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,14 +17,16 @@ public class ParameterMaster {
     private String criteria;
     private String defaultVlue;
     private String formula;
-    private Integer upperRange;
-    private Integer lowerRange;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal upperRange;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal lowerRange;
     @Column(nullable = true)
-    private Integer extrimUpperRange;
+    private Double extrimUpperRange;
     @Column(nullable = true)
-    private Integer extrimLowerRange;
-    private Integer lowerAgeRange;
-    private Integer upperAgeRange;
+    private Double extrimLowerRange;
+    private Double lowerAgeRange;
+    private Double upperAgeRange;
     private String method;
     private String context;
 
@@ -113,51 +115,51 @@ public class ParameterMaster {
         this.formula = formula;
     }
 
-    public Integer getUpperRange() {
+    public BigDecimal getUpperRange() {
         return upperRange;
     }
 
-    public void setUpperRange(Integer upperRange) {
+    public void setUpperRange(BigDecimal upperRange) {
         this.upperRange = upperRange;
     }
 
-    public Integer getLowerRange() {
+    public BigDecimal getLowerRange() {
         return lowerRange;
     }
 
-    public void setLowerRange(Integer lowerRange) {
+    public void setLowerRange(BigDecimal lowerRange) {
         this.lowerRange = lowerRange;
     }
 
-    public Integer getExtrimUpperRange() {
+    public Double getExtrimUpperRange() {
         return extrimUpperRange;
     }
 
-    public void setExtrimUpperRange(Integer extrimUpperRange) {
+    public void setExtrimUpperRange(Double extrimUpperRange) {
         this.extrimUpperRange = extrimUpperRange;
     }
 
-    public Integer getExtrimLowerRange() {
+    public Double getExtrimLowerRange() {
         return extrimLowerRange;
     }
 
-    public void setExtrimLowerRange(Integer extrimLowerRange) {
+    public void setExtrimLowerRange(Double extrimLowerRange) {
         this.extrimLowerRange = extrimLowerRange;
     }
 
-    public Integer getLowerAgeRange() {
+    public Double getLowerAgeRange() {
         return lowerAgeRange;
     }
 
-    public void setLowerAgeRange(Integer lowerAgeRange) {
+    public void setLowerAgeRange(Double lowerAgeRange) {
         this.lowerAgeRange = lowerAgeRange;
     }
 
-    public Integer getUpperAgeRange() {
+    public Double getUpperAgeRange() {
         return upperAgeRange;
     }
 
-    public void setUpperAgeRange(Integer upperAgeRange) {
+    public void setUpperAgeRange(Double upperAgeRange) {
         this.upperAgeRange = upperAgeRange;
     }
 

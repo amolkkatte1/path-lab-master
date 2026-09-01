@@ -10,6 +10,7 @@ public class ParameterMaster {
     private Long parameterId;
     private String parameterName;
     private String code;
+    private String value;
     private Integer sequence;
     private String dataType;
     private String unit;
@@ -264,14 +265,22 @@ public class ParameterMaster {
         this.updatedAt = updatedAt;
     }
 
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
 	@Override
 	public String toString() {
 		return "ParameterMaster [parameterId=" + parameterId + ", parameterName=" + parameterName + ", code=" + code
-				+ ", sequence=" + sequence + ", dataType=" + dataType + ", unit=" + unit + ", criteria=" + criteria
-				+ ", defaultVlue=" + defaultVlue + ", formula=" + formula + ", upperRange=" + upperRange
-				+ ", lowerRange=" + lowerRange + ", extrimUpperRange=" + extrimUpperRange + ", extrimLowerRange="
-				+ extrimLowerRange + ", lowerAgeRange=" + lowerAgeRange + ", upperAgeRange=" + upperAgeRange
-				+ ", method=" + method + ", context=" + context + ", isHideLable=" + isHideLable
+				+ ", value=" + value + ", sequence=" + sequence + ", dataType=" + dataType + ", unit=" + unit
+				+ ", criteria=" + criteria + ", defaultVlue=" + defaultVlue + ", formula=" + formula + ", upperRange="
+				+ upperRange + ", lowerRange=" + lowerRange + ", extrimUpperRange=" + extrimUpperRange
+				+ ", extrimLowerRange=" + extrimLowerRange + ", lowerAgeRange=" + lowerAgeRange + ", upperAgeRange="
+				+ upperAgeRange + ", method=" + method + ", context=" + context + ", isHideLable=" + isHideLable
 				+ ", isHideLableOnRemport=" + isHideLableOnRemport + ", isLocalDictonery=" + isLocalDictonery
 				+ ", isWrapper=" + isWrapper + ", isCalculative=" + isCalculative + ", isImageResize=" + isImageResize
 				+ ", isBold=" + isBold + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt="

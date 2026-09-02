@@ -1,5 +1,6 @@
 package pathlabmaster.pojo;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -10,7 +11,9 @@ public class TestMaster {
 	@Id
 	private Long testId;
 	private String testName;
+	@Column(columnDefinition = "TEXT")
 	private String parameterGroupList;
+	@Column(columnDefinition = "TEXT")
 	private String parameterList;
 	private Long serviceId;
 	private String serviceName;

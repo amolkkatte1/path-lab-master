@@ -10,5 +10,9 @@ public interface PatientMasterRepository extends JpaRepository<PatientMaster, Lo
 
 	List<PatientMaster> findByLabId(Long labId);
 
+	PatientMaster findByPatientIdAndLabId(Long patientId, Long labId);
+
+	List<PatientMaster> findByLabIdAndCreatedAtStartingWith(Long labId, String today);
+
 	
 }

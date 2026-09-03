@@ -19,6 +19,7 @@ public class PatientMaster {
 	private String dateOfBirth;
 	private Long doctorId;
 	private String doctorName;
+	private Integer age;
 	private Integer year;
 	private Integer month;
 	private Integer days;
@@ -198,14 +199,23 @@ public class PatientMaster {
 		this.doctorName = doctorName;
 	}
 
+	public Integer getAge() {
+		return age;
+	}
+
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+
 	@Override
 	public String toString() {
 		return "PatientMaster [patientId=" + patientId + ", firstName=" + firstName + ", middleName=" + middleName
 				+ ", lastName=" + lastName + ", mobileNumber=" + mobileNumber + ", prefix=" + prefix + ", mailId="
 				+ mailId + ", gender=" + gender + ", dateOfBirth=" + dateOfBirth + ", doctorId=" + doctorId
-				+ ", doctorName=" + doctorName + ", year=" + year + ", month=" + month + ", days=" + days
-				+ ", adharNumber=" + adharNumber + ", labName=" + labName + ", labId=" + labId + ", createdBy="
+				+ ", doctorName=" + doctorName + ", age=" + age + ", year=" + year + ", month=" + month + ", days="
+				+ days + ", adharNumber=" + adharNumber + ", labName=" + labName + ", labId=" + labId + ", createdBy="
 				+ createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
 				+ "]";
 	}
+
 }

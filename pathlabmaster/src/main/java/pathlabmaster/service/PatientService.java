@@ -24,6 +24,7 @@ public class PatientService implements IPatientService {
 		patientDetails.setUpdatedAt(Utility.getCurrentTime());
 		patientDetails.setCreatedAt(Utility.getCurrentTime());
 		PatientMaster savedPatient = patientRepo.save(patientDetails);
+		patientDetails.setAge(patientDetails.getYear());
 		System.out.println(savedPatient.getPatientId()); 
 		return new Response(ResponseStatus.success, 1, "Patient created successfully", savedPatient);
 	}

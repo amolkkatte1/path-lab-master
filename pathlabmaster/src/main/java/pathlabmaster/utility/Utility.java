@@ -1,4 +1,5 @@
 package pathlabmaster.utility;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -33,5 +34,10 @@ public class Utility {
 		List<Long> parameterIds = objectMapper.readValue(ids, new TypeReference<List<Long>>() {
 		});
 		return parameterIds;
+	}
+	
+	public static String getTodayDate() {
+		return LocalDate.now().toString();
+		
 	}
 }

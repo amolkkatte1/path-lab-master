@@ -6,6 +6,7 @@ import java.util.Map;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -26,6 +27,8 @@ public class ReportMaster {
 	private Long updatedBy;
 	private String createdAt;
 	private String updatedAt;
+	@JdbcTypeCode(SqlTypes.JSON)
+	private Map<String, Map<String, Boolean>> status;
 	public ReportMaster() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -84,10 +87,17 @@ public class ReportMaster {
 	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+	public Map<String, Map<String, Boolean>> getStatus() {
+		return status;
+	}
+	public void setStatus(Map<String, Map<String, Boolean>> status) {
+		this.status = status;
+	}
 	@Override
 	public String toString() {
 		return "ReportMaster [reportId=" + reportId + ", patientId=" + patientId + ", labId=" + labId + ", pendingTest="
 				+ pendingTest + ", completedTest=" + completedTest + ", createdBy=" + createdBy + ", updatedBy="
-				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", status=" + status + "]";
 	}
+	
 }

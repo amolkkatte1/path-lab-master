@@ -44,6 +44,10 @@ public class ReportService implements IReportService {
 		reportMaster.setPatientId(reportRegistrationRequest.getPatientId());
 		Map<String, List<ParameterDetails>> pendingTest = new HashMap<>();
 		List<ParameterDetails> parameterList = new ArrayList<>();
+		Map<String, Map<String, Boolean>> reportStatus = new HashMap<>();
+		Map<String, Boolean> status = new HashMap<>();
+		status.put("isApproved", false);
+		status.put("isPrinted", false);
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			parameterList = new ArrayList<>();
@@ -52,13 +56,14 @@ public class ReportService implements IReportService {
 						parameter.getSequence(), parameter.getDataType(), parameter.getUnit(), parameter.getFormula(),
 						parameter.getUpperRange(), parameter.getLowerRange(), parameter.getIsBold()));
 			}
+			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
 			pendingTest.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);
 		}
+		reportMaster.setStatus(reportStatus);
 		reportMaster.setPendingTest(pendingTest);
 		ReportMaster savedReport = reportMasterRepo.save(reportMaster);
 		System.out.println(savedReport.getReportId()); 
 		return new Response(ResponseStatus.success, 1, "Report Registration successfully", savedReport);
 	}
-
 	
 }

@@ -129,7 +129,7 @@ public class ReportService implements IReportService {
 		List<PatientMaster> patientMaster = patientMasterRepo.findByLabIdAndCreatedAtStartingWith(labId,today);
 		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
 		for(ReportMaster reportMaster:reportMasterList) {
-			if (reportMaster.getPendingTest() != null && !reportMaster.getPendingTest().isEmpty()) {
+			if (reportMaster.getPendingTest() != null && !reportMaster.getPendingTest().isEmpty() && patientMap.containsKey(reportMaster.getPatientId())) {
 				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
 			}
 		}
@@ -145,7 +145,9 @@ public class ReportService implements IReportService {
 		List<PatientMaster> patientMaster = patientMasterRepo.findByLabIdAndCreatedAtStartingWith(labId,today);
 		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
 		for(ReportMaster reportMaster:reportMasterList) {
-			reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
+			if(patientMap.containsKey(reportMaster.getPatientId())) {
+				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
+			}
 		}
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
 	}

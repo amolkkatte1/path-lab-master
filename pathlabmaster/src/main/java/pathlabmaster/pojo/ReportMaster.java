@@ -23,6 +23,7 @@ public class ReportMaster {
 	private Map<String, List<ParameterDetails>> pendingTest;
 	@JdbcTypeCode(SqlTypes.JSON)
 	private Map<String, List<ParameterDetails>> completedTest;
+	private String reportNameList;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdAt;
@@ -93,11 +94,18 @@ public class ReportMaster {
 	public void setStatus(Map<String, Map<String, Boolean>> status) {
 		this.status = status;
 	}
+	public String getReportNameList() {
+		return reportNameList;
+	}
+	public void setReportNameList(String reportNameList) {
+		this.reportNameList = reportNameList;
+	}
 	@Override
 	public String toString() {
 		return "ReportMaster [reportId=" + reportId + ", patientId=" + patientId + ", labId=" + labId + ", pendingTest="
-				+ pendingTest + ", completedTest=" + completedTest + ", createdBy=" + createdBy + ", updatedBy="
-				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", status=" + status + "]";
+				+ pendingTest + ", completedTest=" + completedTest + ", reportNameList=" + reportNameList
+				+ ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt="
+				+ updatedAt + ", status=" + status + "]";
 	}
 	
 }

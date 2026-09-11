@@ -82,7 +82,13 @@ public class ReportService implements IReportService {
 
 	@Override
 	public Response saveReportDetails(ReportMaster reportMaster) {
-		ReportMaster savedReport = reportMasterRepo.save(reportMaster);
+		ReportMaster reportMasterExisting = reportMasterRepo.findByPatientIdAndLabId(reportMaster.getPatientId(),reportMaster.getLabId());
+		reportMasterExisting.setPendingTest(reportMaster.getPendingTest());
+		reportMasterExisting.setCompletedTest(reportMaster.getCompletedTest());
+		reportMasterExisting.setStatus(reportMaster.getStatus());
+		reportMasterExisting.setUpdatedAt(Utility.getCurrentTime());
+		reportMasterExisting.setUpdatedBy(reportMaster.getUpdatedBy());
+		ReportMaster savedReport = reportMasterRepo.save(reportMasterExisting);
 		System.out.println(savedReport.getReportId()); 
 		return new Response(ResponseStatus.success, 1, "Report Save successfully", savedReport);
 	}

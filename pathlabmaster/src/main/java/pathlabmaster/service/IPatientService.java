@@ -19,5 +19,7 @@ public interface IPatientService {
 
 	Response getTodayPatientCount(Long labId);
 
+	Response getPatientDashboard(Long labId);
+
 
 }

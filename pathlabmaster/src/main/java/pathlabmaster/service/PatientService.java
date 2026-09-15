@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pathlabmaster.dao.PatientMasterRepository;
+import pathlabmaster.pojo.PatientDashboardResponse;
 import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.ResponseStatus;
@@ -86,4 +87,38 @@ public class PatientService implements IPatientService {
 		return new Response(ResponseStatus.success, 1, "Today's patient count fetched successfully", patientCount);
 	}
 
+	@Override
+	public Response getPatientDashboard(Long labId) {
+
+		// Total patients
+		long totalPatients = patientRepo.countByLabId(labId);
+
+		// Current month
+		String currentMonth = Utility.getCurrentMonth();
+
+		// Previous month
+		String previousMonth = Utility.getPreviousMonthStartDate().substring(0, 7);
+
+		// Current month patient count
+		long currentMonthPatients = patientRepo.countByLabIdAndCreatedAtStartingWith(labId, currentMonth);
+
+		// Previous month patient count
+		long previousMonthPatients = patientRepo.countByLabIdAndCreatedAtStartingWith(labId, previousMonth);
+
+		// Calculate percentage
+		double growthPercentage = 0.0;
+
+		if (previousMonthPatients > 0) {
+
+			growthPercentage = ((double) (currentMonthPatients - previousMonthPatients) / previousMonthPatients) * 100;
+
+			growthPercentage = Math.round(growthPercentage * 10.0) / 10.0;
+		}
+
+		PatientDashboardResponse dashboardResponse = new PatientDashboardResponse(totalPatients, currentMonthPatients,
+				previousMonthPatients, growthPercentage);
+
+		return new Response(ResponseStatus.success, 1, "Patient dashboard data fetched successfully",
+				dashboardResponse);
+	}
 }

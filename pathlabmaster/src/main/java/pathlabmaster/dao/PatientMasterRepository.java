@@ -14,7 +14,9 @@ public interface PatientMasterRepository extends JpaRepository<PatientMaster, Lo
 
 	List<PatientMaster> findByLabIdAndCreatedAtStartingWith(Long labId, String today);
 
-	long countByLabIdAndCreatedAtStartingWith(Long labId, String todayDate);
+	// Total patients for lab
+	long countByLabId(Long labId);
 
-	
+	// Patients created in a particular month/date
+	long countByLabIdAndCreatedAtStartingWith(Long labId, String date);
 }

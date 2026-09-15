@@ -81,15 +81,22 @@ public class PatientRestController {
 
 	@GetMapping("/count/today/labId/{labId}")
 	public Response getTodayPatientCount(@PathVariable Long labId) throws JsonProcessingException {
+		System.out.println("Get Today Patient Count API Started : " + labId);
+		Response response = patientService.getTodayPatientCount(labId);
+		System.out.println("Get Today Patient Count API Completed : " + Utility.toJsonString(response));
+		return response;
+	}
 
-	    System.out.println("Get Today Patient Count API Started : " + labId);
+	@GetMapping("/dashboard/labId/{labId}")
+	public Response getPatientDashboard(@PathVariable Long labId) throws JsonProcessingException {
 
-	    Response response = patientService.getTodayPatientCount(labId);
+		System.out.println("Get Patient Dashboard API Started : " + labId);
 
-	    System.out.println("Get Today Patient Count API Completed : "
-	            + Utility.toJsonString(response));
+		Response response = patientService.getPatientDashboard(labId);
 
-	    return response;
+		System.out.println("Get Patient Dashboard API Completed : " + Utility.toJsonString(response));
+
+		return response;
 	}
 	
 }

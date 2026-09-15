@@ -79,6 +79,17 @@ public class PatientRestController {
 		return response;
 	}
 
-	
+	@GetMapping("/count/today/labId/{labId}")
+	public Response getTodayPatientCount(@PathVariable Long labId) throws JsonProcessingException {
+
+	    System.out.println("Get Today Patient Count API Started : " + labId);
+
+	    Response response = patientService.getTodayPatientCount(labId);
+
+	    System.out.println("Get Today Patient Count API Completed : "
+	            + Utility.toJsonString(response));
+
+	    return response;
+	}
 	
 }

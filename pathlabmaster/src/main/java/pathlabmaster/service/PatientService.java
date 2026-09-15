@@ -80,4 +80,10 @@ public class PatientService implements IPatientService {
 		return new Response(ResponseStatus.success, 1, "Get Patient List by LabId successfully", patientList);
 	}
 
+	@Override
+	public Response getTodayPatientCount(Long labId) {
+		long patientCount = patientRepo.countByLabIdAndCreatedAtStartingWith(labId, Utility.getTodayDate());
+		return new Response(ResponseStatus.success, 1, "Today's patient count fetched successfully", patientCount);
+	}
+
 }

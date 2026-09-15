@@ -61,11 +61,24 @@ public class ReportService implements IReportService {
 		List<String> reportNames = new ArrayList<>();
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			parameterList = new ArrayList<>();
+			status.put("isImageUploadEnable", Boolean.TRUE.equals(test.getIsImageUploadEnable()));
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			for(ParameterMaster parameter : parameterMasterList) {
-				parameterList.add(new ParameterDetails(parameter.getParameterName(), parameter.getValue(),
-						parameter.getSequence(), parameter.getDataType(), parameter.getUnit(), parameter.getFormula(),
-						parameter.getUpperRange(), parameter.getLowerRange(), parameter.getIsBold()));
+				parameterList.add(new ParameterDetails(
+				        parameter.getParameterName(),
+				        parameter.getValue(),
+				        parameter.getSequence(),
+				        parameter.getDataType(),
+				        parameter.getUnit(),
+				        parameter.getFormula(),
+				        parameter.getUpperRange(),
+				        parameter.getLowerRange(),
+				        parameter.getIsBold(),
+				        parameter.getIsNameBold(),
+				        parameter.getIsDescriptionParameter(),
+				        parameter.getPosition(),
+				        parameter.getParameterRange()
+				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
 			pendingTest.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);
@@ -107,9 +120,21 @@ public class ReportService implements IReportService {
 			parameterList = new ArrayList<>();
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			for(ParameterMaster parameter : parameterMasterList) {
-				parameterList.add(new ParameterDetails(parameter.getParameterName(), parameter.getValue(),
-						parameter.getSequence(), parameter.getDataType(), parameter.getUnit(), parameter.getFormula(),
-						parameter.getUpperRange(), parameter.getLowerRange(), parameter.getIsBold()));
+				parameterList.add(new ParameterDetails(
+				        parameter.getParameterName(),
+				        parameter.getValue(),
+				        parameter.getSequence(),
+				        parameter.getDataType(),
+				        parameter.getUnit(),
+				        parameter.getFormula(),
+				        parameter.getUpperRange(),
+				        parameter.getLowerRange(),
+				        parameter.getIsBold(),
+				        parameter.getIsNameBold(),
+				        parameter.getIsDescriptionParameter(),
+				        parameter.getPosition(),
+				        parameter.getParameterRange()
+				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
 			pendingReportsExisting.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);

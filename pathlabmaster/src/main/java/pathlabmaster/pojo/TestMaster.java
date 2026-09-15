@@ -23,6 +23,7 @@ public class TestMaster {
 	private Long labId;
 	private Long serviceGroupName;
 	private Integer testCharges;
+	private Boolean isImageUploadEnable;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdAt;
@@ -161,14 +162,22 @@ public class TestMaster {
 		this.labId = labId;
 	}
 
+	public Boolean getIsImageUploadEnable() {
+		return isImageUploadEnable;
+	}
+
+	public void setIsImageUploadEnable(Boolean isImageUploadEnable) {
+		this.isImageUploadEnable = isImageUploadEnable;
+	}
+
 	@Override
 	public String toString() {
 		return "TestMaster [testId=" + testId + ", testName=" + testName + ", parameterGroupList=" + parameterGroupList
 				+ ", parameterList=" + parameterList + ", serviceId=" + serviceId + ", serviceName=" + serviceName
 				+ ", serviceShortName=" + serviceShortName + ", serviceGroupId=" + serviceGroupId + ", labName="
 				+ labName + ", labId=" + labId + ", serviceGroupName=" + serviceGroupName + ", testCharges="
-				+ testCharges + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt
-				+ ", updatedAt=" + updatedAt + "]";
+				+ testCharges + ", isImageUploadEnable=" + isImageUploadEnable + ", createdBy=" + createdBy
+				+ ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
 
 }

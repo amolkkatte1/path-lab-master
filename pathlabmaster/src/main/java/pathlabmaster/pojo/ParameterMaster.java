@@ -37,7 +37,10 @@ public class ParameterMaster {
     private Boolean isCalculative;
     private Boolean isImageResize;
     private Boolean isBold;
-
+    private Boolean isNameBold;
+    private Boolean isDescriptionParameter;
+    private	Integer position;
+    private String parameterRange;
     private Long createdBy;
     private Long updatedBy;
     private String createdAt;
@@ -275,6 +278,38 @@ public class ParameterMaster {
 		this.value = value;
 	}
 
+	public Boolean getIsNameBold() {
+		return isNameBold;
+	}
+
+	public void setIsNameBold(Boolean isNameBold) {
+		this.isNameBold = isNameBold;
+	}
+
+	public Boolean getIsDescriptionParameter() {
+		return isDescriptionParameter;
+	}
+
+	public void setIsDescriptionParameter(Boolean isDescriptionParameter) {
+		this.isDescriptionParameter = isDescriptionParameter;
+	}
+
+	public Integer getPosition() {
+		return position;
+	}
+
+	public void setPosition(Integer position) {
+		this.position = position;
+	}
+
+	public String getParameterRange() {
+		return parameterRange;
+	}
+
+	public void setParameterRange(String parameterRange) {
+		this.parameterRange = parameterRange;
+	}
+
 	@Override
 	public String toString() {
 		return "ParameterMaster [parameterId=" + parameterId + ", parameterName=" + parameterName + ", code=" + code
@@ -285,7 +320,10 @@ public class ParameterMaster {
 				+ upperAgeRange + ", method=" + method + ", context=" + context + ", isHideLable=" + isHideLable
 				+ ", isHideLableOnRemport=" + isHideLableOnRemport + ", isLocalDictonery=" + isLocalDictonery
 				+ ", isWrapper=" + isWrapper + ", isCalculative=" + isCalculative + ", isImageResize=" + isImageResize
-				+ ", isBold=" + isBold + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt="
-				+ createdAt + ", updatedAt=" + updatedAt + "]";
+				+ ", isBold=" + isBold + ", isNameBold=" + isNameBold + ", isDescriptionParameter="
+				+ isDescriptionParameter + ", position=" + position + ", parameterRange=" + parameterRange
+				+ ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt="
+				+ updatedAt + "]";
 	}
+
 }

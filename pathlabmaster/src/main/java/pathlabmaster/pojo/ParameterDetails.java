@@ -13,10 +13,15 @@ public class ParameterDetails {
     private BigDecimal upperRange;
     private BigDecimal lowerRange;
     private Boolean isBold;
+    private Boolean isNameBold;
+    private Boolean isDescriptionParameter;
+    private	Integer position;
+    private String parameterRange;
 
     // Getters and Setters
 	public ParameterDetails(String parameterName, String value, Integer sequence, String dataType, String unit,
-			String formula, BigDecimal upperRange, BigDecimal lowerRange, Boolean isBold) {
+			String formula, BigDecimal upperRange, BigDecimal lowerRange, Boolean isBold, Boolean isNameBold,
+			Boolean isDescriptionParameter, Integer position, String parameterRange) {
 
 		this.parameterName = parameterName;
 		this.value = value;
@@ -27,6 +32,10 @@ public class ParameterDetails {
 		this.upperRange = upperRange;
 		this.lowerRange = lowerRange;
 		this.isBold = isBold;
+		this.isNameBold = isNameBold;
+		this.isDescriptionParameter = isDescriptionParameter;
+		this.position = position;
+		this.parameterRange = parameterRange;
 	}
     public String getParameterName() {
         return parameterName;
@@ -99,4 +108,28 @@ public class ParameterDetails {
     public void setIsBold(Boolean isBold) {
         this.isBold = isBold;
     }
+	public Boolean getIsNameBold() {
+		return isNameBold;
+	}
+	public void setIsNameBold(Boolean isNameBold) {
+		this.isNameBold = isNameBold;
+	}
+	public Boolean getIsDescriptionParameter() {
+		return isDescriptionParameter;
+	}
+	public void setIsDescriptionParameter(Boolean isDescriptionParameter) {
+		this.isDescriptionParameter = isDescriptionParameter;
+	}
+	public Integer getPosition() {
+		return position;
+	}
+	public void setPosition(Integer position) {
+		this.position = position;
+	}
+	public String getParameterRange() {
+		return parameterRange;
+	}
+	public void setParameterRange(String parameterRange) {
+		this.parameterRange = parameterRange;
+	}
 }

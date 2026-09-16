@@ -27,8 +27,8 @@ public class PatientService implements IPatientService {
 	public Response createPatient(PatientMaster patientDetails) {
 		Optional<LabMaster> labMaster =  labRepo.findById(patientDetails.getLabId());
 		LabMaster lab = labMaster.get();
+		patientDetails.setPatientId(Utility.generateId());
 		if(lab.getPatientCountAlloted()>=1 && lab.getSbuscriptionEndDate().compareTo(Utility.getTodayDate()) >= 0) {
-			patientDetails.setPatientId(Utility.generateId());
 			patientDetails.setUpdatedAt(Utility.getCurrentTime());
 			patientDetails.setCreatedAt(Utility.getCurrentTime());
 			patientDetails.setAge(patientDetails.getYear());
@@ -38,7 +38,7 @@ public class PatientService implements IPatientService {
 			labRepo.save(lab);
 			return new Response(ResponseStatus.success, 1, "Patient created successfully", savedPatient);
 		}else {
-			return new Response(ResponseStatus.failure, 1, "Your Subscriptions is Expired Please Contact Admin", null);
+			return new Response(ResponseStatus.failure, 1, "Your Subscriptions is Expired Please Contact Admin",patientDetails);
 		}
 	}
 

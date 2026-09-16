@@ -38,7 +38,7 @@ public class PatientService implements IPatientService {
 			labRepo.save(lab);
 			return new Response(ResponseStatus.success, 1, "Patient created successfully", savedPatient);
 		}else {
-			return new Response(ResponseStatus.failure, 1, "Your Subscriptions is Expired Please Contact Admin",null);
+			return new Response(ResponseStatus.failure, 0, "Your Subscriptions is Expired Please Contact Admin",null);
 		}
 	}
 

@@ -149,10 +149,14 @@ public class ReportService implements IReportService {
 
 	@Override
 	public Response getPendingReportsByPatientIdAndLabId(Long patientId, Long labId) {
-		ReportMaster reportMaster = reportMasterRepo.findByPatientIdAndLabId(patientId,labId);
-		PatientMaster patientMaster = patientMasterRepo.findByPatientIdAndLabId(patientId,labId);
-		ReportMasterResponse reportMasterResponse = new ReportMasterResponse(patientMaster,reportMaster);
-		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponse);
+		ReportMaster reportMaster = reportMasterRepo.findByPatientIdAndLabId(patientId, labId);
+		PatientMaster patientMaster = patientMasterRepo.findByPatientIdAndLabId(patientId, labId);
+		if (patientMaster != null && reportMaster != null) {
+			ReportMasterResponse reportMasterResponse = new ReportMasterResponse(patientMaster, reportMaster);
+			return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponse);
+		} else {
+			return new Response(ResponseStatus.failure, 0, "Reports not yet Register", null);
+		}
 	}
 
 

@@ -6,7 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import pathlabmaster.dao.LabMasterRepository;
 import pathlabmaster.dao.PatientMasterRepository;
+import pathlabmaster.pojo.LabMaster;
 import pathlabmaster.pojo.PatientDashboardResponse;
 import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.utility.Response;
@@ -18,16 +20,26 @@ public class PatientService implements IPatientService {
 
 	@Autowired
 	private PatientMasterRepository patientRepo;
+	@Autowired
+	private LabMasterRepository labRepo;
 
 	@Override
 	public Response createPatient(PatientMaster patientDetails) {
-		patientDetails.setPatientId(Utility.generateId());
-		patientDetails.setUpdatedAt(Utility.getCurrentTime());
-		patientDetails.setCreatedAt(Utility.getCurrentTime());
-		patientDetails.setAge(patientDetails.getYear());
-		PatientMaster savedPatient = patientRepo.save(patientDetails);
-		System.out.println(savedPatient.getPatientId()); 
-		return new Response(ResponseStatus.success, 1, "Patient created successfully", savedPatient);
+		Optional<LabMaster> labMaster =  labRepo.findById(patientDetails.getLabId());
+		LabMaster lab = labMaster.get();
+		if(lab.getPatientCountAlloted()>=1 && lab.getSbuscriptionEndDate().compareTo(Utility.getTodayDate()) >= 0) {
+			patientDetails.setPatientId(Utility.generateId());
+			patientDetails.setUpdatedAt(Utility.getCurrentTime());
+			patientDetails.setCreatedAt(Utility.getCurrentTime());
+			patientDetails.setAge(patientDetails.getYear());
+			PatientMaster savedPatient = patientRepo.save(patientDetails);
+			System.out.println(savedPatient.getPatientId());
+			lab.setPatientCountAlloted(lab.getPatientCountAlloted()-1);
+			labRepo.save(lab);
+			return new Response(ResponseStatus.success, 1, "Patient created successfully", savedPatient);
+		}else {
+			return new Response(ResponseStatus.failure, 1, "Your Subscriptions is Expired Please Contact Admin", null);
+		}
 	}
 
 	@Override

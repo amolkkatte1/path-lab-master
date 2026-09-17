@@ -225,9 +225,10 @@ public class ReportService implements IReportService {
 		for(PatientMaster patient :patientMaster) {
 			if(reportMap.containsKey(patient.getPatientId())){
 				reportMasterResponseList.add(new ReportMasterResponse(patient,reportMap.get(patient.getPatientId())));
-			}else {
-				reportMasterResponseList.add(new ReportMasterResponse(patient));
 			}
+//				else {
+//				reportMasterResponseList.add(new ReportMasterResponse(patient));
+//			}
 		}
 		
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);

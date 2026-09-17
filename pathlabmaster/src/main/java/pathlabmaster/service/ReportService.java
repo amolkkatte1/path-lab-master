@@ -61,7 +61,8 @@ public class ReportService implements IReportService {
 		status.put("isSaved", false);
 		status.put("isNameBold", false);
 		status.put("isDescriptionParameter", false);
-		status.put("isValueRequired", false); 
+		status.put("isValueRequired", false);
+		status.put("isValueDiscription", false);
 		List<String> reportNames = new ArrayList<>();
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			parameterList = new ArrayList<>();
@@ -123,6 +124,11 @@ public class ReportService implements IReportService {
 		Map<String, Boolean> status = new HashMap<>();
 		status.put("isApproved", false);
 		status.put("isPrinted", false);
+		status.put("isSaved", false);
+		status.put("isNameBold", false);
+		status.put("isDescriptionParameter", false);
+		status.put("isValueRequired", false);
+		status.put("isValueDiscription", false);
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			parameterList = new ArrayList<>();
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));

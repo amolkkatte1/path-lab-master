@@ -17,11 +17,12 @@ public class ParameterDetails {
     private Boolean isDescriptionParameter;
     private	Integer position;
     private String parameterRange;
+    private Boolean isValueRequired;
 
     // Getters and Setters
 	public ParameterDetails(String parameterName, String value, Integer sequence, String dataType, String unit,
 			String formula, BigDecimal upperRange, BigDecimal lowerRange, Boolean isBold, Boolean isNameBold,
-			Boolean isDescriptionParameter, Integer position, String parameterRange) {
+			Boolean isDescriptionParameter, Integer position, String parameterRange, Boolean isValueRequired) {
 
 		this.parameterName = parameterName;
 		this.value = value;
@@ -36,6 +37,7 @@ public class ParameterDetails {
 		this.isDescriptionParameter = isDescriptionParameter;
 		this.position = position;
 		this.parameterRange = parameterRange;
+		this.isValueRequired = isValueRequired;
 	}
     public String getParameterName() {
         return parameterName;
@@ -131,5 +133,11 @@ public class ParameterDetails {
 	}
 	public void setParameterRange(String parameterRange) {
 		this.parameterRange = parameterRange;
+	}
+	public Boolean getIsValueRequired() {
+		return isValueRequired;
+	}
+	public void setIsValueRequired(Boolean isValueRequired) {
+		this.isValueRequired = isValueRequired;
 	}
 }

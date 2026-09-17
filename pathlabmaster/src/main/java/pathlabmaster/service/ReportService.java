@@ -58,6 +58,9 @@ public class ReportService implements IReportService {
 		status.put("isApproved", false);
 		status.put("isPrinted", false);
 		status.put("isSaved", false);
+		status.put("isNameBold", false);
+		status.put("isDescriptionParameter", false);
+		status.put("isValueRequired", false); 
 		List<String> reportNames = new ArrayList<>();
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			parameterList = new ArrayList<>();
@@ -77,7 +80,8 @@ public class ReportService implements IReportService {
 				        parameter.getIsNameBold(),
 				        parameter.getIsDescriptionParameter(),
 				        parameter.getPosition(),
-				        parameter.getParameterRange()
+				        parameter.getParameterRange(),
+				        parameter.getIsValueRequired()
 				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
@@ -133,7 +137,8 @@ public class ReportService implements IReportService {
 				        parameter.getIsNameBold(),
 				        parameter.getIsDescriptionParameter(),
 				        parameter.getPosition(),
-				        parameter.getParameterRange()
+				        parameter.getParameterRange(),
+				        parameter.getIsValueRequired()
 				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);

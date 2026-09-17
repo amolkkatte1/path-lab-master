@@ -41,6 +41,7 @@ public class ParameterMaster {
     private Boolean isDescriptionParameter;
     private	Integer position;
     private String parameterRange;
+    private Boolean isValueRequired;
     private Long createdBy;
     private Long updatedBy;
     private String createdAt;
@@ -310,6 +311,14 @@ public class ParameterMaster {
 		this.parameterRange = parameterRange;
 	}
 
+	public Boolean getIsValueRequired() {
+		return isValueRequired;
+	}
+
+	public void setIsValueRequired(Boolean isValueRequired) {
+		this.isValueRequired = isValueRequired;
+	}
+
 	@Override
 	public String toString() {
 		return "ParameterMaster [parameterId=" + parameterId + ", parameterName=" + parameterName + ", code=" + code
@@ -322,8 +331,8 @@ public class ParameterMaster {
 				+ ", isWrapper=" + isWrapper + ", isCalculative=" + isCalculative + ", isImageResize=" + isImageResize
 				+ ", isBold=" + isBold + ", isNameBold=" + isNameBold + ", isDescriptionParameter="
 				+ isDescriptionParameter + ", position=" + position + ", parameterRange=" + parameterRange
-				+ ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt="
-				+ updatedAt + "]";
+				+ ", isValueRequired=" + isValueRequired + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
+				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
 
 }

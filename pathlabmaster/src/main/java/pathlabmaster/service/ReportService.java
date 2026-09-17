@@ -138,7 +138,8 @@ public class ReportService implements IReportService {
 				        parameter.getIsDescriptionParameter(),
 				        parameter.getPosition(),
 				        parameter.getParameterRange(),
-				        parameter.getIsValueRequired()
+				        parameter.getIsValueRequired(),
+				        parameter.getLineCount()
 				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);

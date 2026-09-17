@@ -42,6 +42,7 @@ public class ParameterMaster {
     private	Integer position;
     private String parameterRange;
     private Boolean isValueRequired;
+    private	Integer lineCount;
     private Long createdBy;
     private Long updatedBy;
     private String createdAt;
@@ -319,6 +320,14 @@ public class ParameterMaster {
 		this.isValueRequired = isValueRequired;
 	}
 
+	public Integer getLineCount() {
+		return lineCount;
+	}
+
+	public void setLineCount(Integer lineCount) {
+		this.lineCount = lineCount;
+	}
+
 	@Override
 	public String toString() {
 		return "ParameterMaster [parameterId=" + parameterId + ", parameterName=" + parameterName + ", code=" + code
@@ -331,8 +340,8 @@ public class ParameterMaster {
 				+ ", isWrapper=" + isWrapper + ", isCalculative=" + isCalculative + ", isImageResize=" + isImageResize
 				+ ", isBold=" + isBold + ", isNameBold=" + isNameBold + ", isDescriptionParameter="
 				+ isDescriptionParameter + ", position=" + position + ", parameterRange=" + parameterRange
-				+ ", isValueRequired=" + isValueRequired + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
-				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+				+ ", isValueRequired=" + isValueRequired + ", lineCount=" + lineCount + ", createdBy=" + createdBy
+				+ ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
 
 }

@@ -19,11 +19,11 @@ public class ParameterDetails {
     private	Integer lineCount;
     private String parameterRange;
     private Boolean isValueRequired;
-
+    private Boolean isValueDiscription;
     // Getters and Setters
 	public ParameterDetails(String parameterName, String value, Integer sequence, String dataType, String unit,
 			String formula, BigDecimal upperRange, BigDecimal lowerRange, Boolean isBold, Boolean isNameBold,
-			Boolean isDescriptionParameter, Integer position, String parameterRange, Boolean isValueRequired, Integer lineCount) {
+			Boolean isDescriptionParameter, Integer position, String parameterRange, Boolean isValueRequired, Integer lineCount, Boolean isValueDiscription) {
 
 		this.parameterName = parameterName;
 		this.value = value;
@@ -40,6 +40,7 @@ public class ParameterDetails {
 		this.parameterRange = parameterRange;
 		this.isValueRequired = isValueRequired;
 		this.lineCount = lineCount;
+		this.isValueDiscription = isValueDiscription;
 	}
     public String getParameterName() {
         return parameterName;

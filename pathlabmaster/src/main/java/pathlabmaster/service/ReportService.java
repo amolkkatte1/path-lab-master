@@ -83,7 +83,8 @@ public class ReportService implements IReportService {
 				        parameter.getPosition(),
 				        parameter.getParameterRange(),
 				        parameter.getIsValueRequired(),
-				        parameter.getLineCount()
+				        parameter.getLineCount(),
+				        parameter.getIsValueDiscription()
 				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
@@ -141,7 +142,8 @@ public class ReportService implements IReportService {
 				        parameter.getPosition(),
 				        parameter.getParameterRange(),
 				        parameter.getIsValueRequired(),
-				        parameter.getLineCount()
+				        parameter.getLineCount(),
+				        parameter.getIsValueDiscription()
 				));
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);

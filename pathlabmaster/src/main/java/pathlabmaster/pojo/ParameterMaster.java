@@ -8,6 +8,7 @@ public class ParameterMaster {
 
     @Id
     private Long parameterId;
+    @Column(columnDefinition = "TEXT")
     private String parameterName;
     private String code;
     private String value;

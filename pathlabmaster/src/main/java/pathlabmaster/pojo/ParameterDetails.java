@@ -149,4 +149,10 @@ public class ParameterDetails {
 	public void setLineCount(Integer lineCount) {
 		this.lineCount = lineCount;
 	}
+	public Boolean getIsValueDiscription() {
+		return isValueDiscription;
+	}
+	public void setIsValueDiscription(Boolean isValueDiscription) {
+		this.isValueDiscription = isValueDiscription;
+	}
 }

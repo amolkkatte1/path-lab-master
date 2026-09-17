@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import pathlabmaster.dao.PatientFilterRequest;
 import pathlabmaster.pojo.ReportMaster;
 import pathlabmaster.pojo.ReportRegistrationRequest;
 import pathlabmaster.service.IReportService;
@@ -78,5 +79,11 @@ public class ReportRestController {
 		return response;
 	}
 	
-	
+	@PostMapping("/list/filter")
+	public Response getReportsByFilter(@RequestBody PatientFilterRequest patientFilterRequest) throws JsonProcessingException {
+		System.out.println("getReportsByFilter Api Started : "+Utility.toJsonString(patientFilterRequest));
+		Response response =reportService.getReportsByFilter(patientFilterRequest);
+		System.out.println("getReportsByFilter Api Completed : "+Utility.toJsonString(response));
+	    return response;
+	}
 }

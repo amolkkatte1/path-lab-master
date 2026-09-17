@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pathlabmaster.dao.ParameterMasterRepository;
+import pathlabmaster.dao.PatientFilterRequest;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
 import pathlabmaster.pojo.ParameterDetails;
@@ -195,6 +196,40 @@ public class ReportService implements IReportService {
 				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
 			}
 		}
+		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
+	}
+
+
+	@Override
+	public Response getReportsByFilter(PatientFilterRequest patientFilterRequest) {
+		String today = Utility.getTodayDate();
+		List<ReportMasterResponse> reportMasterResponseList = new ArrayList<>();
+		List<ReportMaster> reportMasterList =reportMasterRepo.filterReports(
+		        patientFilterRequest.getLabId(),
+		        patientFilterRequest.getFromDate(),
+		        patientFilterRequest.getToDate(),
+		        patientFilterRequest.getPatientId()
+		);
+		List<PatientMaster> patientMaster = patientMasterRepo.filterPatients(
+		        patientFilterRequest.getLabId(),
+		        patientFilterRequest.getFromDate(),
+		        patientFilterRequest.getToDate(),
+		        patientFilterRequest.getFirstName(),
+		        patientFilterRequest.getLastName(),
+		        patientFilterRequest.getPatientId(),
+		        patientFilterRequest.getDoctorName(),
+		        patientFilterRequest.getDoctorId()
+		);
+//		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
+		Map<Long, ReportMaster> reportMap = reportMasterList.stream().collect(Collectors.toMap(ReportMaster::getPatientId,report -> report));
+		for(PatientMaster patient :patientMaster) {
+			if(reportMap.containsKey(patient.getPatientId())){
+				reportMasterResponseList.add(new ReportMasterResponse(patient,reportMap.get(patient.getPatientId())));
+			}else {
+				reportMasterResponseList.add(new ReportMasterResponse(patient));
+			}
+		}
+		
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
 	}
 	

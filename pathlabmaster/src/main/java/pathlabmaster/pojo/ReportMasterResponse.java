@@ -51,6 +51,23 @@ public class ReportMasterResponse {
 
 		this.reportCreatedAt = report.getCreatedAt();
 	}
+
+	public ReportMasterResponse(PatientMaster patient) {
+		// PatientMaster
+		this.patientId = patient.getPatientId();
+		this.prefix = patient.getPrefix();
+		this.firstName = patient.getFirstName();
+		this.middleName = patient.getMiddleName();
+		this.lastName = patient.getLastName();
+		this.age = patient.getAge();
+
+		this.doctorId = patient.getDoctorId();
+		this.doctorName = patient.getDoctorName();
+		this.labId = patient.getLabId();
+
+		this.patientCreatedAt = patient.getCreatedAt();
+
+	}
 	public Long getReportId() {
 		return reportId;
 	}

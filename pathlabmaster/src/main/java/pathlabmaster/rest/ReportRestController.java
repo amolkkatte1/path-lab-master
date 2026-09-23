@@ -1,11 +1,17 @@
 package pathlabmaster.rest;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import pathlabmaster.dao.PatientFilterRequest;
 import pathlabmaster.pojo.ReportMaster;
 import pathlabmaster.pojo.ReportRegistrationRequest;
+import pathlabmaster.service.ExcelReportService;
 import pathlabmaster.service.IReportService;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.Utility;
@@ -25,6 +32,8 @@ public class ReportRestController {
 	@Autowired
 	IReportService reportService;
 	ObjectMapper mapper = new ObjectMapper();
+	 @Autowired
+	 ExcelReportService excelReportService;
 	
 	@GetMapping("/")
 	public String sayHello() {
@@ -85,5 +94,41 @@ public class ReportRestController {
 		Response response =reportService.getReportsByFilter(patientFilterRequest);
 		System.out.println("getReportsByFilter Api Completed : "+Utility.toJsonString(response));
 	    return response;
+	}
+	
+	@GetMapping("/generate")
+	public ResponseEntity<byte[]> generateExcel(
+	        @RequestParam(required = false) String fromDate,
+	        @RequestParam(required = false) String toDate,
+	        @RequestParam(required = false) Long labId,
+	        @RequestParam(required = false) String firstName,
+	        @RequestParam(required = false) String lastName,
+	        @RequestParam(required = false) Long patientId,
+	        @RequestParam(required = false) String doctorName,
+	        @RequestParam(required = false) Long doctorId
+	) throws IOException {
+
+	    byte[] excel = excelReportService.generateExcel(
+	            fromDate,
+	            toDate,
+	            labId,
+	            firstName,
+	            lastName,
+	            patientId,
+	            doctorName,
+	            doctorId
+	    );
+
+	    return ResponseEntity.ok()
+	            .header(
+	                    HttpHeaders.CONTENT_DISPOSITION,
+	                    "attachment; filename=patient-report.xlsx"
+	            )
+	            .contentType(
+	                    MediaType.parseMediaType(
+	                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	                    )
+	            )
+	            .body(excel);
 	}
 }

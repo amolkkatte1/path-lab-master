@@ -1,5 +1,6 @@
 package pathlabmaster.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,9 +60,8 @@ public class ReportService implements IReportService {
 		status.put("isApproved", false);
 		status.put("isPrinted", false);
 		status.put("isSaved", false);
-		
-		List<String> reportNames = new ArrayList<>();
-		for(TestMaster test : reportRegistrationRequest.getTestList()) {
+		Map<String, Integer> reportNames = new HashMap<>();
+		for (TestMaster test : reportRegistrationRequest.getTestList()) {
 			parameterList = new ArrayList<>();
 			status.put("isImageUploadEnable", Boolean.TRUE.equals(test.getIsImageUploadEnable()));
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
@@ -87,9 +87,9 @@ public class ReportService implements IReportService {
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
 			pendingTest.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);
-			reportNames.add(test.getTestName());
+			reportNames.put(test.getTestName(),test.getTestCharges());
 		}
-		reportMaster.setReportNameList(reportNames.toString());
+		reportMaster.setReportNameList(reportNames);
 		reportMaster.setStatus(reportStatus);
 		reportMaster.setPendingTest(pendingTest);
 		ReportMaster savedReport = reportMasterRepo.save(reportMaster);
@@ -122,6 +122,7 @@ public class ReportService implements IReportService {
 		status.put("isApproved", false);
 		status.put("isPrinted", false);
 		status.put("isSaved", false);
+		Map<String,Integer> reportNames = new HashMap<>();
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			parameterList = new ArrayList<>();
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
@@ -147,7 +148,9 @@ public class ReportService implements IReportService {
 			}
 			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
 			pendingReportsExisting.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);
+			reportNames.put(test.getTestName(),test.getTestCharges());
 		}
+		reportMaster.setReportNameList(reportNames);
 		reportMaster.setStatus(reportStatus);
 		reportMaster.setPendingTest(pendingReportsExisting);
 		ReportMaster savedReport = reportMasterRepo.save(reportMaster);

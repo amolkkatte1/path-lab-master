@@ -1,5 +1,6 @@
 package pathlabmaster.pojo;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,8 @@ public class ReportMaster {
 	private Map<String, List<ParameterDetails>> pendingTest;
 	@JdbcTypeCode(SqlTypes.JSON)
 	private Map<String, List<ParameterDetails>> completedTest;
-	private String reportNameList;
+	@JdbcTypeCode(SqlTypes.JSON)
+	private Map<String,Integer> reportNameList;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdAt;
@@ -94,10 +96,11 @@ public class ReportMaster {
 	public void setStatus(Map<String, Map<String, Boolean>> status) {
 		this.status = status;
 	}
-	public String getReportNameList() {
+	
+	public Map<String, Integer> getReportNameList() {
 		return reportNameList;
 	}
-	public void setReportNameList(String reportNameList) {
+	public void setReportNameList(Map<String, Integer> reportNameList) {
 		this.reportNameList = reportNameList;
 	}
 	@Override

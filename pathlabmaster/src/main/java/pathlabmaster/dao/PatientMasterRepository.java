@@ -43,4 +43,6 @@ public interface PatientMasterRepository extends JpaRepository<PatientMaster, Lo
 		        @Param("doctorName") String doctorName,
 		        @Param("doctorId") Long doctorId
 		);
+
+	PatientMaster findByPatientId(Long patientId);
 }

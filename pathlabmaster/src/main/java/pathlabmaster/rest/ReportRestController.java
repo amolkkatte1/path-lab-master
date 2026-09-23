@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pathlabmaster.dao.PatientFilterRequest;
+import pathlabmaster.pojo.PdfResponse;
 import pathlabmaster.pojo.ReportMaster;
 import pathlabmaster.pojo.ReportRegistrationRequest;
 import pathlabmaster.service.ExcelReportService;
@@ -101,39 +102,19 @@ public class ReportRestController {
 	}
 	
 	@GetMapping("/generate")
-	public ResponseEntity<byte[]> generateExcel(
-	        @RequestParam(required = false) String fromDate,
-	        @RequestParam(required = false) String toDate,
-	        @RequestParam(required = false) Long labId,
-	        @RequestParam(required = false) String firstName,
-	        @RequestParam(required = false) String lastName,
-	        @RequestParam(required = false) Long patientId,
-	        @RequestParam(required = false) String doctorName,
-	        @RequestParam(required = false) Long doctorId
-	) throws IOException {
+	public ResponseEntity<byte[]> generateExcel(@RequestParam(required = false) String fromDate,
+			@RequestParam(required = false) String toDate, @RequestParam(required = false) Long labId,
+			@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName,
+			@RequestParam(required = false) Long patientId, @RequestParam(required = false) String doctorName,
+			@RequestParam(required = false) Long doctorId) throws IOException {
 
-	    byte[] excel = excelReportService.generateExcel(
-	            fromDate,
-	            toDate,
-	            labId,
-	            firstName,
-	            lastName,
-	            patientId,
-	            doctorName,
-	            doctorId
-	    );
+		byte[] excel = excelReportService.generateExcel(fromDate, toDate, labId, firstName, lastName, patientId,
+				doctorName, doctorId);
 
-	    return ResponseEntity.ok()
-	            .header(
-	                    HttpHeaders.CONTENT_DISPOSITION,
-	                    "attachment; filename=patient-report.xlsx"
-	            )
-	            .contentType(
-	                    MediaType.parseMediaType(
-	                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-	                    )
-	            )
-	            .body(excel);
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=patient-report.xlsx")
+				.contentType(
+						MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+				.body(excel);
 	}
 	
 	@GetMapping("/generate/pdf")
@@ -146,5 +127,17 @@ public class ReportRestController {
 				doctorId);
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=patient-report.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdf);
+	}
+	
+	@GetMapping("/generate/patientId/{patientId}/reportIds/{reportIds}")
+	public ResponseEntity<byte[]> getPendingReportsByPatientIdAndLabId(@PathVariable Long patientId,
+			@PathVariable String reportIds) throws Exception {
+		System.out.println(
+				"Generate Patient Reports API Started : patientId = " + patientId + ", reportIds = " + reportIds);
+		PdfResponse pdfResponse = pdfReportService.createPdf(patientId, reportIds);
+
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdfResponse.getFileName() + "\"")
+				.contentType(MediaType.APPLICATION_PDF).body(pdfResponse.getPdf());
 	}
 }

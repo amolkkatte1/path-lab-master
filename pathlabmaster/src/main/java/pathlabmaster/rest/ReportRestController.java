@@ -22,6 +22,7 @@ import pathlabmaster.pojo.ReportMaster;
 import pathlabmaster.pojo.ReportRegistrationRequest;
 import pathlabmaster.service.ExcelReportService;
 import pathlabmaster.service.IReportService;
+import pathlabmaster.service.PdfReportService;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.Utility;
 
@@ -32,9 +33,12 @@ public class ReportRestController {
 	@Autowired
 	IReportService reportService;
 	ObjectMapper mapper = new ObjectMapper();
-	 @Autowired
-	 ExcelReportService excelReportService;
-	
+	@Autowired
+	ExcelReportService excelReportService;
+
+	@Autowired
+	PdfReportService pdfReportService;
+
 	@GetMapping("/")
 	public String sayHello() {
 		return "Report Service Working Amol!";
@@ -130,5 +134,17 @@ public class ReportRestController {
 	                    )
 	            )
 	            .body(excel);
+	}
+	
+	@GetMapping("/generate/pdf")
+	public ResponseEntity<byte[]> generatePdf(@RequestParam(required = false) String fromDate,
+			@RequestParam(required = false) String toDate, @RequestParam(required = false) Long labId,
+			@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName,
+			@RequestParam(required = false) Long patientId, @RequestParam(required = false) String doctorName,
+			@RequestParam(required = false) Long doctorId) throws IOException {
+		byte[] pdf = pdfReportService.generatePdf(fromDate, toDate, labId, firstName, lastName, patientId, doctorName,
+				doctorId);
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=patient-report.pdf")
+				.contentType(MediaType.APPLICATION_PDF).body(pdf);
 	}
 }

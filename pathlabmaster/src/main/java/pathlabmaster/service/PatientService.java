@@ -28,7 +28,7 @@ public class PatientService implements IPatientService {
 		Optional<LabMaster> labMaster =  labRepo.findById(patientDetails.getLabId());
 		LabMaster lab = labMaster.get();
 		patientDetails.setPatientId(Utility.generateId());
-		if(lab.getPatientCountAlloted()>=1 && lab.getSbuscriptionEndDate().compareTo(Utility.getTodayDate()) >= 0) {
+		if(lab.getPatientCountAlloted()>=1 && lab.getSbuscriptionEndDate().compareTo(Utility.getTodayDate()) > 0) {
 			patientDetails.setUpdatedAt(Utility.getCurrentTime());
 			patientDetails.setCreatedAt(Utility.getCurrentTime());
 			patientDetails.setAge(patientDetails.getYear());

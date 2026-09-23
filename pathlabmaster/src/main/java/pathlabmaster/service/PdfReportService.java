@@ -657,10 +657,9 @@ public class PdfReportService {
 		// Get Patient Details
 		// =====================================================
 
-		PatientMaster patientDetails = patientMasterRepo.findByPatientId(patientId);
+		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
 
-		ReportMaster reportDetails = reportMasterRepo.findByPatientId(patientId);
-
+		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
 		// =====================================================
 		// Patient Information - ONLY 6 FIELDS
 		// =====================================================
@@ -827,7 +826,7 @@ public class PdfReportService {
 
 			testTable.setWidthPercentage(100);
 
-			testTable.setWidths(new float[] { 25, 25, 20, 30 });
+			testTable.setWidths(new float[] { 40, 15, 20, 25 });
 
 			// =================================================
 			// Table Header
@@ -839,7 +838,7 @@ public class PdfReportService {
 
 			addInfoCell(testTable, "Unit", boldFont, Element.ALIGN_LEFT);
 
-			addInfoCell(testTable, "Reference Range", boldFont, Element.ALIGN_RIGHT);
+			addInfoCell(testTable, "Reference Range", boldFont, Element.ALIGN_LEFT);
 
 			// =================================================
 			// Parameter Rows
@@ -881,12 +880,8 @@ public class PdfReportService {
 				// Parameter Name
 				// =====================================================
 
-				addInfoCell(testTable, parameterName,
-						parameter.getSequence() == 2 && parameter.getIsNameBold() != null && parameter.getIsNameBold()
-								? boldFont
-								: parameter.getIsNameBold() != null && parameter.getIsNameBold() ? boldFont1
-										: normalFont1,
-						Element.ALIGN_LEFT);
+				Font parameterNameFont=parameter.getSequence()==2?boldFont:parameter.getIsNameBold()!=null&&parameter.getIsNameBold()?boldFont1:normalFont;
+				addInfoCell(testTable, parameterName != null ? parameterName : "", parameterNameFont,Element.ALIGN_LEFT);
 
 				// =====================================================
 				// Description Parameter
@@ -925,7 +920,7 @@ public class PdfReportService {
 
 					addInfoCell(testTable, unit, normalFont1, Element.ALIGN_LEFT);
 
-					addInfoCell(testTable, referenceRange, normalFont1, Element.ALIGN_RIGHT);
+					addInfoCell(testTable, referenceRange, normalFont1, Element.ALIGN_LEFT);
 				}
 			}
 			// =================================================

@@ -16,6 +16,7 @@ import pathlabmaster.service.IClientConfigService;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.Utility;
 
+
 @RestController
 @RequestMapping("/config")
 //@CrossOrigin(origins = "http://localhost:5174")

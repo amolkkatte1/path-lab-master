@@ -1,6 +1,10 @@
 package pathlabmaster.pojo;
 
 import java.math.BigDecimal;
+import java.util.Map;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,8 +23,9 @@ public class BillMaster {
 	private String doctorName;
 
 	private Long doctorId;
-
-	private String testList;
+	private Long labId;
+	@JdbcTypeCode(SqlTypes.JSON)
+	private Map<String,Integer> testList;
 	@Column(precision = 10, scale = 2)
 	private BigDecimal totalAmount;
 	@Column(precision = 10, scale = 2)
@@ -76,12 +81,11 @@ public class BillMaster {
 	public void setDoctorId(Long doctorId) {
 		this.doctorId = doctorId;
 	}
-
-	public String getTestList() {
+	public Map<String, Integer> getTestList() {
 		return testList;
 	}
 
-	public void setTestList(String testList) {
+	public void setTestList(Map<String, Integer> testList) {
 		this.testList = testList;
 	}
 
@@ -157,13 +161,22 @@ public class BillMaster {
 		this.updatedAt = updatedAt;
 	}
 
+	public Long getLabId() {
+		return labId;
+	}
+
+	public void setLabId(Long labId) {
+		this.labId = labId;
+	}
+
 	@Override
 	public String toString() {
 		return "BillMaster [billId=" + billId + ", patientId=" + patientId + ", doctorName=" + doctorName
-				+ ", doctorId=" + doctorId + ", testList=" + testList + ", totalAmount=" + totalAmount
-				+ ", paymentReceived=" + paymentReceived + ", paymentDue=" + paymentDue + ", discount=" + discount
-				+ ", collectedByDoctor=" + collectedByDoctor + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
-				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+				+ ", doctorId=" + doctorId + ", labId=" + labId + ", testList=" + testList + ", totalAmount="
+				+ totalAmount + ", paymentReceived=" + paymentReceived + ", paymentDue=" + paymentDue + ", discount="
+				+ discount + ", collectedByDoctor=" + collectedByDoctor + ", createdBy=" + createdBy + ", updatedBy="
+				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
+
 
 }

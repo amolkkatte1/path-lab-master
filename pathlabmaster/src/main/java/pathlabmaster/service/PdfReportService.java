@@ -33,6 +33,7 @@ import pathlabmaster.dao.DoctorMasterRepository;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
 import pathlabmaster.pojo.BillMaster;
+import pathlabmaster.pojo.ClientConfig;
 import pathlabmaster.pojo.DoctorMaster;
 import pathlabmaster.pojo.ParameterDetails;
 import pathlabmaster.pojo.PatientMaster;
@@ -648,8 +649,11 @@ public class PdfReportService {
 		 * Top margin is increased because patient details + Test Name / Result / Unit /
 		 * Reference Range are printed by page event on every page.
 		 */
-
-		Document document = new Document(PageSize.A4, 30, 30, 78, 25);
+		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
+		ClientConfig clientConfig = clientConfigRepo.findByLabId(patientDetails.getLabId());
+		int topMargin=clientConfig.getReportTopSpace();
+		Document document = new Document(PageSize.A4, 30, 30, (78+topMargin), 25);
+		
 
 		PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
@@ -669,7 +673,7 @@ public class PdfReportService {
 		// Get Patient
 		// =====================================================
 
-		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
+	
 
 		if (patientDetails == null) {
 
@@ -698,7 +702,7 @@ public class PdfReportService {
 		// appear on every page.
 		// =====================================================
 
-		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont);
+		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont,topMargin);
 
 		writer.setPageEvent(pageHeader);
 
@@ -1431,14 +1435,16 @@ public class PdfReportService {
 		private final Long patientId;
 
 		private final Font boldFont;
+		private final int topMargin;
 
 		public ReportPageHeader(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails,
-				Font boldFont) {
+				Font boldFont, int topMargin) {
 
 			this.patientId = patientId;
 			this.patientDetails = patientDetails;
 			this.reportDetails = reportDetails;
 			this.boldFont = boldFont;
+			this.topMargin = topMargin;
 		}
 
 		@Override
@@ -1481,7 +1487,7 @@ public class PdfReportService {
 				// =====================================================
 
 				headerTable.setTotalWidth(width);
-				headerTable.writeSelectedRows(0, -1, left, document.getPageSize().getHeight() - 20, canvas);
+				headerTable.writeSelectedRows(0, -1, left, document.getPageSize().getHeight() - (20+topMargin), canvas);
 
 				// =====================================================
 				// Column header
@@ -1491,7 +1497,7 @@ public class PdfReportService {
 
 				columnHeaderTable.setTotalWidth(width);
 
-				float columnHeaderY = document.getPageSize().getHeight() - 20 - patientHeaderHeight - 5;
+				float columnHeaderY = document.getPageSize().getHeight() - (20+topMargin) - patientHeaderHeight - 5;
 
 				columnHeaderTable.writeSelectedRows(0, -1, left, columnHeaderY, canvas);
 

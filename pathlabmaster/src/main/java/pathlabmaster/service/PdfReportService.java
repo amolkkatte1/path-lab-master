@@ -437,7 +437,7 @@ public class PdfReportService {
 
 			String qrUrl = Constants.SELF_BASE_URL_PROD
 					+ Constants.QR_CODE_URL.replaceFirst("\\{}", String.valueOf(patientId))
-							.replaceFirst("\\{}", reportIds).replaceFirst("\\{}", String.valueOf(headerRequired));
+							.replaceFirst("\\{}", reportIds).replaceFirst("\\{}", String.valueOf(headerRequired)).replaceFirst("\\{}", String.valueOf(mdSignRequired));
 
 			qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
 		}

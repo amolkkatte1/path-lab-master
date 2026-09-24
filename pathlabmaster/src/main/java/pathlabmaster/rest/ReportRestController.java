@@ -129,12 +129,12 @@ public class ReportRestController {
 				.contentType(MediaType.APPLICATION_PDF).body(pdf);
 	}
 	
-	@GetMapping("/generate/patientId/{patientId}/reportIds/{reportIds}")
-	public ResponseEntity<byte[]> getPendingReportsByPatientIdAndLabId(@PathVariable Long patientId,
-			@PathVariable String reportIds) throws Exception {
+	@GetMapping("/generate/pId/{pId}/rIds/{rIds}/hdr/{hdr}/mdsn/{mdsn}")
+	public ResponseEntity<byte[]> getPendingReportsByPatientIdAndLabId(@PathVariable Long pId,
+			@PathVariable String rIds, @PathVariable boolean hdr,@PathVariable boolean mdsn) throws Exception {
 		System.out.println(
-				"Generate Patient Reports API Started : patientId = " + patientId + ", reportIds = " + reportIds);
-		PdfResponse pdfResponse = pdfReportService.createPdf(patientId, reportIds);
+				"Generate Patient Reports API Started : patientId = " + pId + ", reportIds = " + rIds);
+		PdfResponse pdfResponse = pdfReportService.createPdf(pId, rIds,hdr,mdsn);
 
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdfResponse.getFileName() + "\"")

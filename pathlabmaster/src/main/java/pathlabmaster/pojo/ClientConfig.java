@@ -21,6 +21,9 @@ public class ClientConfig {
 	private Map<String, List<String>> testKeys;
 	private Integer reportTopSpace;
 	private Integer reportBottomSpace;
+	private boolean isQrCodeRequired;
+	private Integer qrCodeHorizantalPosition;
+	private Integer qrCodeVerticalPosition;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdAt;
@@ -83,12 +86,31 @@ public class ClientConfig {
 	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+	public boolean isQrCodeRequired() {
+		return isQrCodeRequired;
+	}
+	public void setQrCodeRequired(boolean isQrCodeRequired) {
+		this.isQrCodeRequired = isQrCodeRequired;
+	}
+	public Integer getQrCodeHorizantalPosition() {
+		return qrCodeHorizantalPosition;
+	}
+	public void setQrCodeHorizantalPosition(Integer qrCodeHorizantalPosition) {
+		this.qrCodeHorizantalPosition = qrCodeHorizantalPosition;
+	}
+	public Integer getQrCodeVerticalPosition() {
+		return qrCodeVerticalPosition;
+	}
+	public void setQrCodeVerticalPosition(Integer qrCodeVerticalPosition) {
+		this.qrCodeVerticalPosition = qrCodeVerticalPosition;
+	}
 	@Override
 	public String toString() {
 		return "ClientConfig [configId=" + configId + ", labId=" + labId + ", testKeys=" + testKeys
-				+ ", reportTopSpace=" + reportTopSpace + ", reportBottomSpace=" + reportBottomSpace + ", createdBy="
-				+ createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
-				+ "]";
+				+ ", reportTopSpace=" + reportTopSpace + ", reportBottomSpace=" + reportBottomSpace
+				+ ", isQrCodeRequired=" + isQrCodeRequired + ", qrCodeHorizantalPosition=" + qrCodeHorizantalPosition
+				+ ", qrCodeVerticalPosition=" + qrCodeVerticalPosition + ", createdBy=" + createdBy + ", updatedBy="
+				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
 
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
@@ -28,20 +29,22 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
-
 import pathlabmaster.dao.BillMasterRepository;
 import pathlabmaster.dao.ClientConfigRepository;
 import pathlabmaster.dao.DoctorMasterRepository;
+import pathlabmaster.dao.MdDoctorMasterRepository;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
 
 import pathlabmaster.pojo.BillMaster;
 import pathlabmaster.pojo.ClientConfig;
 import pathlabmaster.pojo.DoctorMaster;
+import pathlabmaster.pojo.MdDoctorMaster;
 import pathlabmaster.pojo.ParameterDetails;
 import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.pojo.PdfResponse;
 import pathlabmaster.pojo.ReportMaster;
+import pathlabmaster.utility.Constants;
 
 @Service
 public class PdfReportService {
@@ -60,7 +63,10 @@ public class PdfReportService {
 
 	@Autowired
 	private ClientConfigRepository clientConfigRepo;
-
+	@Autowired
+	private QrCodeService qrCodeService;
+	@Autowired
+	private MdDoctorMasterRepository mdDoctorRepo;
 	// ============================================================
 	// GENERATE PDF
 	// ============================================================
@@ -375,13 +381,13 @@ public class PdfReportService {
 	// CREATE INDIVIDUAL REPORT PDF
 	// ============================================================
 
-	public PdfResponse createPdf(Long patientId, String reportIds) throws Exception {
+	public PdfResponse createPdf(Long patientId, String reportIds, boolean headerRequired, boolean mdSignRequired) throws Exception {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-		// ========================================================
-		// PATIENT
-		// ========================================================
+		// =====================================================
+		// GET PATIENT
+		// =====================================================
 
 		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
 
@@ -389,11 +395,60 @@ public class PdfReportService {
 			throw new RuntimeException("Patient not found : " + patientId);
 		}
 
-		// ========================================================
+		// =====================================================
 		// CLIENT CONFIG
-		// ========================================================
+		// =====================================================
 
 		ClientConfig clientConfig = clientConfigRepo.findByLabId(patientDetails.getLabId());
+
+		// =====================================================
+		// QR CONFIGURATION
+		// =====================================================
+
+		boolean isQrRequired = false;
+
+		int qrCodePositionHorizantal = 2;
+		int qrCodePositionVertical = 2;
+
+		float qrSize = 50f;
+
+		if (clientConfig != null) {
+
+			isQrRequired = clientConfig.isQrCodeRequired();
+
+			if (clientConfig.getQrCodeHorizantalPosition() != null) {
+				qrCodePositionHorizantal = clientConfig.getQrCodeHorizantalPosition();
+			}
+
+			if (clientConfig.getQrCodeVerticalPosition() != null) {
+				qrCodePositionVertical = clientConfig.getQrCodeVerticalPosition();
+			}
+		}
+		
+		// =====================================================
+		// QR CODE
+		//
+		// Generate QR ONLY when required
+		// =====================================================
+
+		byte[] qrCode = null;
+
+		if (isQrRequired) {
+
+			String qrUrl = Constants.SELF_BASE_URL_PROD
+					+ Constants.QR_CODE_URL.replaceFirst("\\{}", String.valueOf(patientId))
+							.replaceFirst("\\{}", reportIds).replaceFirst("\\{}", String.valueOf(headerRequired));
+
+			qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
+		}
+		
+		MdDoctorMaster mdDoctorDetails = mdDoctorRepo
+		        .findFirstByLabIdAndIsActiveTrueOrderByCreatedAtDesc(patientDetails.getLabId())
+		        .orElse(null);
+		
+		// =====================================================
+		// TOP MARGIN
+		// =====================================================
 
 		int topMargin = 20;
 
@@ -401,29 +456,38 @@ public class PdfReportService {
 
 			topMargin = clientConfig.getReportTopSpace();
 		}
+
+		// =====================================================
+		// BOTTOM MARGIN
+		// =====================================================
+
 		int bottomMargin = 20;
+
 		if (clientConfig != null && clientConfig.getReportBottomSpace() != null) {
 
 			bottomMargin = clientConfig.getReportBottomSpace();
 		}
-		// ========================================================
-		// PAGE
-		//
-		// Bottom margin reserved for:
-		//
-		// -----------------------------
-		// End of Report
-		// -----------------------------
-		//
-		// ========================================================
+
+		// =====================================================
+		// RESERVE QR FOOTER SPACE ONLY WHEN QR IS REQUIRED
+		// =====================================================
+
+		if (isQrRequired) {
+
+			bottomMargin = Math.max(bottomMargin, 90);
+		}
+
+		// =====================================================
+		// A4 DOCUMENT
+		// =====================================================
 
 		Document document = new Document(PageSize.A4, 30, 30, 78 + topMargin, bottomMargin);
 
 		PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
-		// ========================================================
+		// =====================================================
 		// FONTS
-		// ========================================================
+		// =====================================================
 
 		Font normalFont = new Font(Font.HELVETICA, 10, Font.NORMAL);
 
@@ -433,9 +497,9 @@ public class PdfReportService {
 
 		Font boldFont1 = new Font(Font.HELVETICA, 9, Font.BOLD);
 
-		// ========================================================
-		// REPORT
-		// ========================================================
+		// =====================================================
+		// GET REPORT
+		// =====================================================
 
 		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
 
@@ -444,41 +508,34 @@ public class PdfReportService {
 			throw new RuntimeException("Report not found for patient : " + patientId);
 		}
 
-		// ========================================================
-		// PAGE EVENT
-		//
-		// Header + column header + End of Report footer
-		// are handled automatically on every page.
-		// ========================================================
+		// =====================================================
+		// PAGE HEADER / FOOTER
+		// =====================================================
 
 		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont,
-				topMargin);
+				topMargin, qrCode, qrCodePositionHorizantal, qrCodePositionVertical, qrSize, isQrRequired);
 
 		writer.setPageEvent(pageHeader);
 
-		// ========================================================
+		// =====================================================
 		// OPEN DOCUMENT
-		// ========================================================
+		// =====================================================
 
 		document.open();
 
-		// ========================================================
+		// =====================================================
 		// REPORT IDS
-		// ========================================================
+		// =====================================================
 
 		List<String> reportIdList = Arrays.asList(reportIds.split("\\|"));
 
-		// ========================================================
-		// COMPLETED TESTS
-		// ========================================================
+		// =====================================================
+		// COMPLETED TEST DATA
+		// =====================================================
 
 		Map<String, List<ParameterDetails>> reportOriginal = reportDetails.getCompletedTest();
 
 		Map<String, List<ParameterDetails>> reports = new HashMap<>();
-
-		// ========================================================
-		// SHORT REPORT IDS
-		// ========================================================
 
 		if (reportOriginal != null) {
 
@@ -495,9 +552,9 @@ public class PdfReportService {
 			}
 		}
 
-		// ========================================================
+		// =====================================================
 		// GROUP TESTS
-		// ========================================================
+		// =====================================================
 
 		Map<String, List<List<ParameterDetails>>> groupedTests = new LinkedHashMap<>();
 
@@ -517,16 +574,16 @@ public class PdfReportService {
 				continue;
 			}
 
-			// ====================================================
+			// =================================================
 			// SORT BY SEQUENCE
-			// ====================================================
+			// =================================================
 
 			testDetails.sort(
 					Comparator.comparing(ParameterDetails::getSequence, Comparator.nullsLast(Integer::compareTo)));
 
-			// ====================================================
-			// GROUP NAME
-			// ====================================================
+			// =================================================
+			// GET GROUP NAME
+			// =================================================
 
 			String groupName = "";
 
@@ -545,16 +602,16 @@ public class PdfReportService {
 				groupName = "OTHER";
 			}
 
-			// ====================================================
+			// =================================================
 			// ADD TEST TO GROUP
-			// ====================================================
+			// =================================================
 
 			groupedTests.computeIfAbsent(groupName, k -> new ArrayList<>()).add(testDetails);
 		}
 
-		// ========================================================
-		// GROUPS
-		// ========================================================
+		// =====================================================
+		// PRINT GROUPS
+		// =====================================================
 
 		int groupIndex = 0;
 
@@ -564,22 +621,22 @@ public class PdfReportService {
 
 			List<List<ParameterDetails>> testsInGroup = groupEntry.getValue();
 
-			// ====================================================
+			// =================================================
 			// GROUP TITLE
-			// ====================================================
+			// =================================================
 
 			addGroupTitle(document, groupName, boldFont);
 
-			// ====================================================
-			// TESTS
-			// ====================================================
+			// =================================================
+			// PRINT TESTS
+			// =================================================
 
 			for (int testIndex = 0; testIndex < testsInGroup.size(); testIndex++) {
 
 				List<ParameterDetails> testDetails = testsInGroup.get(testIndex);
 
 				// =================================================
-				// PARAMETERS WITHOUT SEQUENCE 1
+				// REMOVE GROUP NAME PARAMETER
 				// =================================================
 
 				List<ParameterDetails> parametersForTest = new ArrayList<>();
@@ -595,13 +652,13 @@ public class PdfReportService {
 				}
 
 				// =================================================
-				// TEST TABLE
+				// CREATE TEST TABLE
 				// =================================================
 
 				PdfPTable testTable = createTestTable(parametersForTest, normalFont, boldFont, normalFont1, boldFont1);
 
 				// =================================================
-				// HEIGHT
+				// CALCULATE REQUIRED HEIGHT
 				// =================================================
 
 				float requiredTestHeight = calculateTestHeight(testDetails);
@@ -609,7 +666,7 @@ public class PdfReportService {
 				requiredTestHeight += 4;
 
 				// =================================================
-				// AVAILABLE SPACE
+				// AVAILABLE PAGE HEIGHT
 				// =================================================
 
 				float currentY = writer.getVerticalPosition(true);
@@ -617,21 +674,15 @@ public class PdfReportService {
 				float availableHeight = currentY - document.bottomMargin();
 
 				// =================================================
-				// DOES TEST FIT?
+				// TEST DOES NOT FIT
 				// =================================================
 
 				if (requiredTestHeight > availableHeight) {
 
-					// =============================================
-					// NEW PAGE
-					// =============================================
-
 					document.newPage();
 
-					// =============================================
-					// REPEAT GROUP NAME
-					// =============================================
-
+					// Print group name again
+					// on new page
 					addGroupTitle(document, groupName, boldFont);
 				}
 
@@ -644,6 +695,10 @@ public class PdfReportService {
 				testWrapper.setWidthPercentage(100);
 
 				testWrapper.setKeepTogether(true);
+
+				// =================================================
+				// TEST CELL
+				// =================================================
 
 				PdfPCell testCell = new PdfPCell(testTable);
 
@@ -658,15 +713,11 @@ public class PdfReportService {
 				// =================================================
 
 				document.add(testWrapper);
-
-				// =================================================
-				// NO BORDER / NO SEPARATOR AFTER TEST
-				// =================================================
 			}
 
-			// ====================================================
+			// =================================================
 			// SPACE BETWEEN GROUPS
-			// ====================================================
+			// =================================================
 
 			groupIndex++;
 
@@ -680,25 +731,22 @@ public class PdfReportService {
 			}
 		}
 
-		// ========================================================
-		// IMPORTANT
-		//
-		// NO BORDER AFTER EACH TEST.
-		//
-		// "End of Report" is NOT added here.
-		//
-		// It is handled by ReportPageHeader.onEndPage()
-		// and therefore appears on every page.
-		// ========================================================
+		// =====================================================
+		// CLOSE DOCUMENT
+		// =====================================================
 
 		document.close();
 
-		// ========================================================
-		// RESPONSE
-		// ========================================================
+		// =====================================================
+		// FILE NAME
+		// =====================================================
 
 		String fileName = "Report-" + safe(patientDetails.getFirstName()) + " " + safe(patientDetails.getMiddleName())
 				+ " " + safe(patientDetails.getLastName()) + ".pdf";
+
+		// =====================================================
+		// RESPONSE
+		// =====================================================
 
 		return new PdfResponse(outputStream.toByteArray(), fileName);
 	}
@@ -1099,32 +1147,33 @@ public class PdfReportService {
 	private class ReportPageHeader extends PdfPageEventHelper {
 
 		private final PatientMaster patientDetails;
-
 		private final ReportMaster reportDetails;
-
 		private final Long patientId;
-
 		private final Font boldFont;
-
 		private final int topMargin;
 
+		private final byte[] qrCode;
+		private final int qrCodePositionHorizantal;
+		private final int qrCodePositionVertical;
+		private final float qrSize;
+		private final boolean isQrRequired;
+
 		public ReportPageHeader(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails, Font boldFont,
-				int topMargin) {
+				int topMargin, byte[] qrCode, int qrCodePositionHorizantal, int qrCodePositionVertical, float qrSize,
+				boolean isQrRequired) {
 
 			this.patientId = patientId;
-
 			this.patientDetails = patientDetails;
-
 			this.reportDetails = reportDetails;
-
 			this.boldFont = boldFont;
-
 			this.topMargin = topMargin;
-		}
 
-		// ========================================================
-		// THIS METHOD RUNS AUTOMATICALLY FOR EVERY PAGE
-		// ========================================================
+			this.qrCode = qrCode;
+			this.qrCodePositionHorizantal = qrCodePositionHorizantal;
+			this.qrCodePositionVertical = qrCodePositionVertical;
+			this.qrSize = qrSize;
+			this.isQrRequired = isQrRequired;
+		}
 
 		@Override
 		public void onEndPage(PdfWriter writer, Document document) {
@@ -1135,9 +1184,17 @@ public class PdfReportService {
 
 				canvas.saveState();
 
+				// =================================================
+				// PAGE SIZE
+				// =================================================
+
 				float pageWidth = document.getPageSize().getWidth();
 
 				float pageHeight = document.getPageSize().getHeight();
+
+				// =================================================
+				// DOCUMENT WIDTH
+				// =================================================
 
 				float left = document.leftMargin();
 
@@ -1173,8 +1230,6 @@ public class PdfReportService {
 
 				// =================================================
 				// FOOTER
-				//
-				// This is now printed on EVERY page.
 				// =================================================
 
 				drawEndOfReport(canvas, document);
@@ -1187,11 +1242,15 @@ public class PdfReportService {
 			}
 		}
 
-		// ========================================================
-		// DRAW FOOTER
-		// ========================================================
+		// =========================================================
+		// FOOTER + QR CODE
+		// =========================================================
 
 		private void drawEndOfReport(PdfContentByte canvas, Document document) {
+
+			// =====================================================
+			// PAGE DIMENSIONS
+			// =====================================================
 
 			float pageWidth = document.getPageSize().getWidth();
 
@@ -1199,11 +1258,32 @@ public class PdfReportService {
 
 			float right = pageWidth - document.rightMargin();
 
+			float centerX = (left + right) / 2;
+
 			// =====================================================
-			// FOOTER LINE
+			// LINE POSITION
 			// =====================================================
 
-			float lineY = document.bottomMargin() + 18;
+			float lineY;
+
+			if (isQrRequired) {
+
+				// QR required
+				// Reserve larger footer area
+
+				lineY = document.bottomMargin() + 75;
+
+			} else {
+
+				// QR not required
+				// Normal footer area
+
+				lineY = document.bottomMargin() + 18;
+			}
+
+			// =====================================================
+			// SINGLE HORIZONTAL BORDER LINE
+			// =====================================================
 
 			canvas.setLineWidth(0.5f);
 
@@ -1219,8 +1299,116 @@ public class PdfReportService {
 
 			Font footerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
 
-			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase("End of Report", footerFont),
-					(left + right) / 2, document.bottomMargin() + 4, 0);
+			float textY = lineY - 15;
+
+			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase("End of Report", footerFont), centerX,
+					textY, 0);
+
+			// =====================================================
+			// QR CODE
+			// =====================================================
+
+			// QR disabled
+			if (!isQrRequired) {
+				return;
+			}
+
+			// QR not available
+			if (qrCode == null || qrCode.length == 0) {
+				return;
+			}
+
+			try {
+
+				// =================================================
+				// CREATE IMAGE
+				// =================================================
+
+				Image qrImage = Image.getInstance(qrCode);
+
+				// =================================================
+				// QR SIZE
+				// =================================================
+
+				qrImage.scaleAbsolute(qrSize, qrSize);
+
+				// =================================================
+				// HORIZONTAL POSITION
+				//
+				// 1 = LEFT
+				// 2 = CENTER
+				// 3 = RIGHT
+				// =================================================
+
+				float qrX;
+
+				if (qrCodePositionHorizantal == 1) {
+
+					// ---------------------------------------------
+					// LEFT
+					// ---------------------------------------------
+
+					qrX = left;
+
+				} else if (qrCodePositionHorizantal == 3) {
+
+					// ---------------------------------------------
+					// RIGHT
+					// ---------------------------------------------
+
+					qrX = right - qrSize;
+
+				} else {
+
+					// ---------------------------------------------
+					// CENTER
+					// ---------------------------------------------
+
+					qrX = centerX - (qrSize / 2);
+				}
+
+				// =================================================
+				// VERTICAL POSITION
+				//
+				// 1 = TOP
+				// 2 = BOTTOM
+				// =================================================
+
+				float qrY;
+
+				if (qrCodePositionVertical == 1) {
+
+					// ---------------------------------------------
+					// TOP
+					// ---------------------------------------------
+
+					qrY = lineY - 20 - qrSize;
+
+				} else {
+
+					// ---------------------------------------------
+					// BOTTOM
+					// ---------------------------------------------
+
+					qrY = document.bottomMargin() + 5;
+				}
+
+				// =================================================
+				// SET QR POSITION
+				// =================================================
+
+				qrImage.setAbsolutePosition(qrX, qrY);
+
+				// =================================================
+				// ADD QR
+				// =================================================
+
+				canvas.addImage(qrImage);
+
+			} catch (Exception e) {
+
+				throw new RuntimeException("Error while adding QR code", e);
+			}
 		}
 	}
 

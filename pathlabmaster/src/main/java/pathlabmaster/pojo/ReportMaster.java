@@ -1,6 +1,5 @@
 package pathlabmaster.pojo;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +25,8 @@ public class ReportMaster {
 	private Map<String, List<ParameterDetails>> completedTest;
 	@JdbcTypeCode(SqlTypes.JSON)
 	private Map<String,Integer> reportNameList;
+	@Column(nullable = false)
+	private boolean mdSignRequired = false;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdAt;
@@ -103,12 +104,18 @@ public class ReportMaster {
 	public void setReportNameList(Map<String, Integer> reportNameList) {
 		this.reportNameList = reportNameList;
 	}
+	public boolean isMdSignRequired() {
+		return mdSignRequired;
+	}
+	public void setMdSignRequired(boolean mdSignRequired) {
+		this.mdSignRequired = mdSignRequired;
+	}
 	@Override
 	public String toString() {
 		return "ReportMaster [reportId=" + reportId + ", patientId=" + patientId + ", labId=" + labId + ", pendingTest="
 				+ pendingTest + ", completedTest=" + completedTest + ", reportNameList=" + reportNameList
-				+ ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdAt=" + createdAt + ", updatedAt="
-				+ updatedAt + ", status=" + status + "]";
+				+ ", mdSignRequired=" + mdSignRequired + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
+				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", status=" + status + "]";
 	}
 	
 }

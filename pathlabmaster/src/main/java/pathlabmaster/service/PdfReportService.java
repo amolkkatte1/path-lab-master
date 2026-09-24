@@ -22,6 +22,7 @@ import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -38,6 +39,7 @@ import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.pojo.PdfResponse;
 import pathlabmaster.pojo.ReportMaster;
 import pathlabmaster.utility.Response;
+import com.lowagie.text.pdf.PdfPageEventHelper;
 
 @Service
 public class PdfReportService {
@@ -640,11 +642,16 @@ public class PdfReportService {
 		// A4 Page
 		// =====================================================
 
-		Document document = new Document(PageSize.A4, 30, 30, 25, 25);
+		/*
+		 * IMPORTANT:
+		 *
+		 * Top margin is increased because patient details + Test Name / Result / Unit /
+		 * Reference Range are printed by page event on every page.
+		 */
+
+		Document document = new Document(PageSize.A4, 30, 30, 78, 25);
 
 		PdfWriter writer = PdfWriter.getInstance(document, outputStream);
-
-		document.open();
 
 		// =====================================================
 		// Fonts
@@ -685,12 +692,29 @@ public class PdfReportService {
 		}
 
 		// =====================================================
-		// Patient Details
+		// PAGE HEADER
+		//
+		// Patient details + column header will automatically
+		// appear on every page.
 		// =====================================================
 
-		PdfPTable patientTable = createPatientTable(patientId, patientDetails, reportDetails, boldFont);
+		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont);
 
-		document.add(patientTable);
+		writer.setPageEvent(pageHeader);
+
+		// =====================================================
+		// Open Document
+		// =====================================================
+
+		document.open();
+
+		// =====================================================
+		// IMPORTANT
+		//
+		// DO NOT add patientTable here.
+		//
+		// It is already printed by ReportPageHeader.
+		// =====================================================
 
 		// =====================================================
 		// Report IDs
@@ -779,19 +803,21 @@ public class PdfReportService {
 			PdfPTable testTitleTable = createTestTitleTable(testName, boldFont);
 
 			// =================================================
-			// Create Test Parameter Table
+			// Create ONLY parameter rows
+			//
+			// NO HEADER HERE
 			// =================================================
 
 			PdfPTable testTable = createTestTable(testDetails, normalFont, boldFont, normalFont1, boldFont1);
 
 			// =================================================
-			// Calculate Approximate Test Height
+			// Calculate approximate test height
 			// =================================================
 
 			float requiredHeight = calculateTestHeight(testDetails);
 
 			// =================================================
-			// Current Page Position
+			// Current available position
 			// =================================================
 
 			float currentY = writer.getVerticalPosition(true);
@@ -799,43 +825,40 @@ public class PdfReportService {
 			float availableHeight = currentY - document.bottomMargin();
 
 			// =================================================
-			// If Complete Test Does Not Fit
+			// If complete test doesn't fit
 			// =================================================
 
 			if (requiredHeight > availableHeight) {
 
-				// -------------------------------------------------
-				// New Page
-				// -------------------------------------------------
-
 				document.newPage();
 
-				// -------------------------------------------------
-				// Patient Details First
-				// -------------------------------------------------
+				/*
+				 * Do NOT manually add patient table or column header here.
+				 *
+				 * PdfPageEventHelper will automatically print:
+				 *
+				 * Patient details Test Name | Result | Unit | Reference Range
+				 *
+				 * on the new page.
+				 */
 
-				PdfPTable newPagePatientTable = createPatientTable(patientId, patientDetails, reportDetails, boldFont);
-
-				document.add(newPagePatientTable);
 			}
 
 			// =================================================
 			// Complete Test Wrapper
-			// =================================================
-			//
-			// This prevents title and table from behaving like
-			// separate pieces.
-			//
 			// =================================================
 
 			PdfPTable completeTestTable = new PdfPTable(1);
 
 			completeTestTable.setWidthPercentage(100);
 
+			/*
+			 * Keep title + all parameter rows together.
+			 */
 			completeTestTable.setKeepTogether(true);
 
 			// =================================================
-			// Test Title Cell
+			// Test Title
 			// =================================================
 
 			PdfPCell titleCell = new PdfPCell(testTitleTable);
@@ -847,7 +870,7 @@ public class PdfReportService {
 			completeTestTable.addCell(titleCell);
 
 			// =================================================
-			// Parameter Table Cell
+			// Parameter Table
 			// =================================================
 
 			PdfPCell parameterCell = new PdfPCell(testTable);
@@ -888,7 +911,6 @@ public class PdfReportService {
 		return new PdfResponse(outputStream.toByteArray(), "Report-" + safe(patientDetails.getFirstName()) + " "
 				+ safe(patientDetails.getMiddleName()) + " " + safe(patientDetails.getLastName()) + ".pdf");
 	}
-
 	/*
 	 * ========================================================= PATIENT TABLE
 	 * =========================================================
@@ -943,29 +965,8 @@ public class PdfReportService {
 
 		addPatientCell(patientTable, ": " + safe(reportDetails.getCreatedAt()), boldFont, Element.ALIGN_RIGHT);
 
-		// =====================================================
-		// Bottom Line
-		// =====================================================
-
-		PdfPTable lineTable = new PdfPTable(1);
-
-		lineTable.setWidthPercentage(100);
-
-		PdfPCell lineCell = new PdfPCell(new Phrase(""));
-
-		lineCell.setBorder(PdfPCell.BOTTOM);
-
-		lineCell.setBorderWidthBottom(0.8f);
-
-		lineCell.setFixedHeight(1);
-
-		lineCell.setPadding(0);
-
-		lineTable.addCell(lineCell);
-
 		patientTable.addCell(createEmptyCell(4));
-
-		return mergePatientTableWithLine(patientTable, lineTable);
+		return patientTable;
 	}
 
 	/*
@@ -1024,7 +1025,7 @@ public class PdfReportService {
 		// Top + Bottom horizontal lines
 		// -----------------------------------------------------
 
-		cell.setBorder(PdfPCell.TOP | PdfPCell.BOTTOM);
+//		cell.setBorder(PdfPCell.TOP | PdfPCell.BOTTOM);
 
 		cell.setBorderWidthTop(0.8f);
 		cell.setBorderWidthBottom(0.8f);
@@ -1067,23 +1068,19 @@ public class PdfReportService {
 		testTable.setWidthPercentage(100);
 
 		// =====================================================
-		// IMPORTANT COLUMN WIDTHS
-		// Similar to reference image
+		// Column Widths
 		// =====================================================
 
 		testTable.setWidths(new float[] { 40, 15, 15, 30 });
 
 		// =====================================================
-		// Table Header
+		// IMPORTANT
+		//
+		// NO HEADER HERE
+		//
+		// Header is printed once per page by
+		// ReportPageHeader.
 		// =====================================================
-
-		addHeaderCell(testTable, "Test Name", boldFont, Element.ALIGN_LEFT);
-
-		addHeaderCell(testTable, "Result", boldFont, Element.ALIGN_LEFT);
-
-		addHeaderCell(testTable, "Unit", boldFont, Element.ALIGN_LEFT);
-
-		addHeaderCell(testTable, "Reference Range", boldFont, Element.ALIGN_LEFT);
 
 		// =====================================================
 		// Parameter Rows
@@ -1113,7 +1110,7 @@ public class PdfReportService {
 			// =================================================
 
 			Font parameterNameFont = parameter.getSequence() != null && parameter.getSequence() == 2 ? boldFont
-					: (Boolean.TRUE.equals(parameter.getIsNameBold()) ? boldFont1 : normalFont1);
+					: Boolean.TRUE.equals(parameter.getIsNameBold()) ? boldFont1 : normalFont1;
 
 			// =================================================
 			// Parameter Name
@@ -1136,6 +1133,7 @@ public class PdfReportService {
 
 				descriptionCell.setPaddingLeft(5);
 				descriptionCell.setPaddingRight(5);
+
 				descriptionCell.setPaddingTop(1);
 				descriptionCell.setPaddingBottom(1);
 
@@ -1175,6 +1173,41 @@ public class PdfReportService {
 	 * ========================================================= HEADER CELL
 	 * =========================================================
 	 */
+	private PdfPTable createColumnHeaderTable(Font boldFont) {
+
+		PdfPTable table = new PdfPTable(4);
+
+		table.setWidthPercentage(100);
+
+		table.setWidths(new float[] { 40, 15, 15, 30 });
+		
+
+		// =====================================================
+		// Test Name
+		// =====================================================
+
+		addHeaderCell(table, "Test Name", boldFont, Element.ALIGN_LEFT);
+
+		// =====================================================
+		// Result
+		// =====================================================
+
+		addHeaderCell(table, "Result", boldFont, Element.ALIGN_LEFT);
+
+		// =====================================================
+		// Unit
+		// =====================================================
+
+		addHeaderCell(table, "Unit", boldFont, Element.ALIGN_LEFT);
+
+		// =====================================================
+		// Reference Range
+		// =====================================================
+
+		addHeaderCell(table, "Reference Range", boldFont, Element.ALIGN_LEFT);
+
+		return table;
+	}
 
 	private void addHeaderCell(PdfPTable table, String text, Font font, int alignment) {
 
@@ -1182,13 +1215,12 @@ public class PdfReportService {
 
 		// =====================================================
 		// ONLY TOP + BOTTOM
-		// NO VERTICAL BORDER
 		// =====================================================
 
-		cell.setBorder(PdfPCell.TOP | PdfPCell.BOTTOM);
+		cell.setBorder(PdfPCell.TOP);
 
-		cell.setBorderWidthTop(0.8f);
-		cell.setBorderWidthBottom(0.8f);
+		cell.setBorderWidthTop(0.1f);
+//		cell.setBorderWidthBottom(0.8f);
 
 		// =====================================================
 		// Compact spacing
@@ -1198,7 +1230,7 @@ public class PdfReportService {
 		cell.setPaddingRight(5);
 
 		cell.setPaddingTop(2);
-		cell.setPaddingBottom(2);
+		cell.setPaddingBottom(4);
 
 		cell.setHorizontalAlignment(alignment);
 
@@ -1214,12 +1246,14 @@ public class PdfReportService {
 
 	private void addParameterCell(PdfPTable table, String text, Font font, int alignment) {
 
-		PdfPCell cell = new PdfPCell( new Phrase(text != null ? text : "", font) );
+		PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
 		cell.setBorder(PdfPCell.NO_BORDER);
-		cell.setPaddingLeft(5); cell.setPaddingRight(5); 
-		cell.setPaddingTop(1); cell.setPaddingBottom(1);
+		cell.setPaddingLeft(5);
+		cell.setPaddingRight(5);
+		cell.setPaddingTop(1);
+		cell.setPaddingBottom(1);
 		cell.setHorizontalAlignment(alignment);
-		cell.setVerticalAlignment(Element.ALIGN_TOP); 
+		cell.setVerticalAlignment(Element.ALIGN_TOP);
 		table.addCell(cell);
 	}
 
@@ -1356,42 +1390,121 @@ public class PdfReportService {
 
 		return value != null ? String.valueOf(value) : "";
 	}
-	
+
 	/*
-	 * =========================================================
-	 * PATIENT CELL
+	 * ========================================================= PATIENT CELL
 	 * =========================================================
 	 */
 	private void addPatientCell(PdfPTable table, String text, Font font, int alignment) {
 
-	    PdfPCell cell = new PdfPCell(
-	            new Phrase(text != null ? text : "", font)
-	    );
+		PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
 
-	    // =====================================================
-	    // NO BORDER
-	    // =====================================================
-	    cell.setBorder(PdfPCell.NO_BORDER);
+		// =====================================================
+		// NO BORDER
+		// =====================================================
+		cell.setBorder(PdfPCell.NO_BORDER);
 
-	    // =====================================================
-	    // SPACING
-	    // =====================================================
-	    cell.setPaddingLeft(0);
-	    cell.setPaddingRight(0);
-	    cell.setPaddingTop(1);
-	    cell.setPaddingBottom(1);
+		// =====================================================
+		// SPACING
+		// =====================================================
+		cell.setPaddingLeft(0);
+		cell.setPaddingRight(0);
+		cell.setPaddingTop(1);
+		cell.setPaddingBottom(1);
 
-	    // =====================================================
-	    // ALIGNMENT
-	    // =====================================================
-	    cell.setHorizontalAlignment(alignment);
-	    cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+		// =====================================================
+		// ALIGNMENT
+		// =====================================================
+		cell.setHorizontalAlignment(alignment);
+		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 
-	    // =====================================================
-	    // ADD CELL
-	    // =====================================================
-	    table.addCell(cell);
+		// =====================================================
+		// ADD CELL
+		// =====================================================
+		table.addCell(cell);
 	}
-	
+
+	private class ReportPageHeader extends PdfPageEventHelper {
+
+		private final PatientMaster patientDetails;
+		private final ReportMaster reportDetails;
+		private final Long patientId;
+
+		private final Font boldFont;
+
+		public ReportPageHeader(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails,
+				Font boldFont) {
+
+			this.patientId = patientId;
+			this.patientDetails = patientDetails;
+			this.reportDetails = reportDetails;
+			this.boldFont = boldFont;
+		}
+
+		@Override
+		public void onEndPage(PdfWriter writer, Document document) {
+
+			try {
+
+				PdfContentByte canvas = writer.getDirectContent();
+
+				// =====================================================
+				// Save current canvas state
+				// =====================================================
+
+				canvas.saveState();
+
+				// =====================================================
+				// Header table
+				// =====================================================
+
+				PdfPTable headerTable = createPatientTable(patientId, patientDetails, reportDetails, boldFont);
+
+				// =====================================================
+				// Test column header
+				// =====================================================
+
+				PdfPTable columnHeaderTable = createColumnHeaderTable(boldFont);
+
+				// =====================================================
+				// Position
+				// =====================================================
+
+				float pageWidth = document.getPageSize().getWidth();
+
+				float left = document.leftMargin();
+
+				float width = pageWidth - document.leftMargin() - document.rightMargin();
+
+				// =====================================================
+				// Patient header
+				// =====================================================
+
+				headerTable.setTotalWidth(width);
+				headerTable.writeSelectedRows(0, -1, left, document.getPageSize().getHeight() - 20, canvas);
+
+				// =====================================================
+				// Column header
+				// =====================================================
+
+				float patientHeaderHeight = headerTable.getTotalHeight();
+
+				columnHeaderTable.setTotalWidth(width);
+
+				float columnHeaderY = document.getPageSize().getHeight() - 20 - patientHeaderHeight - 5;
+
+				columnHeaderTable.writeSelectedRows(0, -1, left, columnHeaderY, canvas);
+
+				// =====================================================
+				// Restore
+				// =====================================================
+
+				canvas.restoreState();
+
+			} catch (Exception e) {
+				throw new RuntimeException("Error while creating PDF page header", e);
+			}
+		}
+	}
 
 }

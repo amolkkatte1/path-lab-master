@@ -1,5 +1,6 @@
 package pathlabmaster.pojo;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
@@ -24,7 +25,7 @@ public class MdDoctorMaster {
     private String signUrl;
 
     // Doctor signature image stored directly in PostgreSQL
-    @Lob
+    @Column(name = "sign_image", columnDefinition = "bytea")
     private byte[] signImage;
 
     private boolean isActive;

@@ -381,7 +381,8 @@ public class PdfReportService {
 	// CREATE INDIVIDUAL REPORT PDF
 	// ============================================================
 
-	public PdfResponse createPdf(Long patientId, String reportIds, boolean headerRequired, boolean mdSignRequired) throws Exception {
+	public PdfResponse createPdf(Long patientId, String reportIds, boolean headerRequired, boolean mdSignRequired)
+			throws Exception {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -424,11 +425,10 @@ public class PdfReportService {
 				qrCodePositionVertical = clientConfig.getQrCodeVerticalPosition();
 			}
 		}
-		
+
 		// =====================================================
 		// QR CODE
-		//
-		// Generate QR ONLY when required
+		// Generate ONLY when required
 		// =====================================================
 
 		byte[] qrCode = null;
@@ -441,11 +441,32 @@ public class PdfReportService {
 
 			qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
 		}
-		
-		MdDoctorMaster mdDoctorDetails = mdDoctorRepo
-		        .findFirstByLabIdAndIsActiveTrueOrderByCreatedAtDesc(patientDetails.getLabId())
-		        .orElse(null);
-		
+
+		// =====================================================
+		// MD DOCTOR / SIGNATURE
+		// Fetch ONLY when mdSignRequired = true
+		// =====================================================
+
+		MdDoctorMaster mdDoctorDetails = null;
+		byte[] mdSign = null;
+
+		int mdSignPositionHorizantal = 3;
+
+		if (mdSignRequired) {
+
+			mdDoctorDetails = mdDoctorRepo
+					.findFirstByLabIdAndIsActiveTrueOrderByCreatedAtDesc(patientDetails.getLabId()).orElse(null);
+
+			if (mdDoctorDetails != null) {
+
+				mdSign = mdDoctorDetails.getSignImage();
+
+				if (mdDoctorDetails.getSignPosition() != null) {
+					mdSignPositionHorizantal = mdDoctorDetails.getSignPosition();
+				}
+			}
+		}
+
 		// =====================================================
 		// TOP MARGIN
 		// =====================================================
@@ -469,12 +490,25 @@ public class PdfReportService {
 		}
 
 		// =====================================================
-		// RESERVE QR FOOTER SPACE ONLY WHEN QR IS REQUIRED
+		// RESERVE FOOTER SPACE
+		//
+		// QR only -> 90
+		// MD only -> 100
+		// QR + MD -> 125
+		// Neither -> configured bottom margin
 		// =====================================================
 
-		if (isQrRequired) {
+		if (isQrRequired && mdSignRequired) {
+
+			bottomMargin = Math.max(bottomMargin, 125);
+
+		} else if (isQrRequired) {
 
 			bottomMargin = Math.max(bottomMargin, 90);
+
+		} else if (mdSignRequired) {
+
+			bottomMargin = Math.max(bottomMargin, 100);
 		}
 
 		// =====================================================
@@ -504,7 +538,6 @@ public class PdfReportService {
 		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
 
 		if (reportDetails == null) {
-
 			throw new RuntimeException("Report not found for patient : " + patientId);
 		}
 
@@ -513,7 +546,13 @@ public class PdfReportService {
 		// =====================================================
 
 		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont,
-				topMargin, qrCode, qrCodePositionHorizantal, qrCodePositionVertical, qrSize, isQrRequired);
+				topMargin,
+
+				// QR
+				qrCode, qrCodePositionHorizantal, qrCodePositionVertical, qrSize, isQrRequired,
+
+				// MD SIGN
+				mdSign, mdDoctorDetails, mdSignPositionHorizantal, mdSignRequired);
 
 		writer.setPageEvent(pageHeader);
 
@@ -682,7 +721,6 @@ public class PdfReportService {
 					document.newPage();
 
 					// Print group name again
-					// on new page
 					addGroupTitle(document, groupName, boldFont);
 				}
 
@@ -693,7 +731,6 @@ public class PdfReportService {
 				PdfPTable testWrapper = new PdfPTable(1);
 
 				testWrapper.setWidthPercentage(100);
-
 				testWrapper.setKeepTogether(true);
 
 				// =================================================
@@ -1152,15 +1189,34 @@ public class PdfReportService {
 		private final Font boldFont;
 		private final int topMargin;
 
+// =====================================================
+// QR
+// =====================================================
+
 		private final byte[] qrCode;
 		private final int qrCodePositionHorizantal;
 		private final int qrCodePositionVertical;
 		private final float qrSize;
 		private final boolean isQrRequired;
 
+// =====================================================
+// MD SIGN
+// =====================================================
+
+		private final byte[] mdSign;
+		private final MdDoctorMaster mdDoctorDetails;
+		private final int mdSignPositionHorizantal;
+		private final boolean mdSignRequired;
+
 		public ReportPageHeader(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails, Font boldFont,
-				int topMargin, byte[] qrCode, int qrCodePositionHorizantal, int qrCodePositionVertical, float qrSize,
-				boolean isQrRequired) {
+				int topMargin,
+
+				// QR
+				byte[] qrCode, int qrCodePositionHorizantal, int qrCodePositionVertical, float qrSize,
+				boolean isQrRequired,
+
+				// MD SIGN
+				byte[] mdSign, MdDoctorMaster mdDoctorDetails, int mdSignPositionHorizantal, boolean mdSignRequired) {
 
 			this.patientId = patientId;
 			this.patientDetails = patientDetails;
@@ -1173,7 +1229,16 @@ public class PdfReportService {
 			this.qrCodePositionVertical = qrCodePositionVertical;
 			this.qrSize = qrSize;
 			this.isQrRequired = isQrRequired;
+
+			this.mdSign = mdSign;
+			this.mdDoctorDetails = mdDoctorDetails;
+			this.mdSignPositionHorizantal = mdSignPositionHorizantal;
+			this.mdSignRequired = mdSignRequired;
 		}
+
+// =====================================================
+// ON END PAGE
+// =====================================================
 
 		@Override
 		public void onEndPage(PdfWriter writer, Document document) {
@@ -1184,17 +1249,9 @@ public class PdfReportService {
 
 				canvas.saveState();
 
-				// =================================================
-				// PAGE SIZE
-				// =================================================
-
 				float pageWidth = document.getPageSize().getWidth();
 
 				float pageHeight = document.getPageSize().getHeight();
-
-				// =================================================
-				// DOCUMENT WIDTH
-				// =================================================
 
 				float left = document.leftMargin();
 
@@ -1229,7 +1286,7 @@ public class PdfReportService {
 				columnHeaderTable.writeSelectedRows(0, -1, left, columnHeaderY, canvas);
 
 				// =================================================
-				// FOOTER
+				// END OF REPORT / FOOTER
 				// =================================================
 
 				drawEndOfReport(canvas, document);
@@ -1242,15 +1299,11 @@ public class PdfReportService {
 			}
 		}
 
-		// =========================================================
-		// FOOTER + QR CODE
-		// =========================================================
+// =====================================================
+// END OF REPORT
+// =====================================================
 
 		private void drawEndOfReport(PdfContentByte canvas, Document document) {
-
-			// =====================================================
-			// PAGE DIMENSIONS
-			// =====================================================
 
 			float pageWidth = document.getPageSize().getWidth();
 
@@ -1261,34 +1314,23 @@ public class PdfReportService {
 			float centerX = (left + right) / 2;
 
 			// =====================================================
-			// LINE POSITION
+			// FOOTER LINE
 			// =====================================================
 
 			float lineY;
 
-			if (isQrRequired) {
+			if (isQrRequired || mdSignRequired) {
 
-				// QR required
-				// Reserve larger footer area
-
-				lineY = document.bottomMargin() + 75;
+				lineY = document.bottomMargin() + 100;
 
 			} else {
-
-				// QR not required
-				// Normal footer area
 
 				lineY = document.bottomMargin() + 18;
 			}
 
-			// =====================================================
-			// SINGLE HORIZONTAL BORDER LINE
-			// =====================================================
-
 			canvas.setLineWidth(0.5f);
 
 			canvas.moveTo(left, lineY);
-
 			canvas.lineTo(right, lineY);
 
 			canvas.stroke();
@@ -1299,109 +1341,236 @@ public class PdfReportService {
 
 			Font footerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
 
-			float textY = lineY - 15;
-
 			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase("End of Report", footerFont), centerX,
-					textY, 0);
+					lineY - 15, 0);
 
 			// =====================================================
-			// QR CODE
+			// DYNAMIC CONTENT ROW
 			// =====================================================
 
-			// QR disabled
-			if (!isQrRequired) {
-				return;
+			float contentY = lineY - 40;
+
+			// =====================================================
+			// CALCULATE BLOCK WIDTH
+			// =====================================================
+
+			float qrWidth = isQrRequired ? qrSize : 0;
+
+			float mdWidth = mdSignRequired ? 90f : 0;
+
+			float gap = 25f;
+
+			// =====================================================
+			// DYNAMIC POSITIONS
+			// =====================================================
+
+			float qrX = -1;
+			float mdX = -1;
+
+			// -----------------------------------------------------
+			// QR POSITION
+			// -----------------------------------------------------
+
+			if (isQrRequired) {
+
+				if (qrCodePositionHorizantal == 1) {
+
+					// LEFT
+					qrX = left;
+
+				} else if (qrCodePositionHorizantal == 2) {
+
+					// CENTER
+					qrX = centerX - (qrWidth / 2);
+
+				} else {
+
+					// RIGHT
+					qrX = right - qrWidth;
+				}
 			}
 
-			// QR not available
-			if (qrCode == null || qrCode.length == 0) {
+			// -----------------------------------------------------
+			// MD POSITION
+			// -----------------------------------------------------
+
+			if (mdSignRequired) {
+
+				if (mdSignPositionHorizantal == 1) {
+
+					// LEFT
+					mdX = left;
+
+				} else if (mdSignPositionHorizantal == 2) {
+
+					// CENTER
+					mdX = centerX - (mdWidth / 2);
+
+				} else {
+
+					// RIGHT
+					mdX = right - mdWidth;
+				}
+			}
+
+			// =====================================================
+			// OVERLAP CHECK
+			// =====================================================
+
+			if (isQrRequired && mdSignRequired) {
+
+				float qrRight = qrX + qrWidth;
+
+				float mdRight = mdX + mdWidth;
+
+				boolean overlap = qrX < mdRight && mdX < qrRight;
+
+				if (overlap) {
+
+					// ---------------------------------------------
+					// Both are configured at same position.
+					// Automatically separate them.
+					// ---------------------------------------------
+
+					if (qrCodePositionHorizantal == 1) {
+
+						// QR LEFT
+						qrX = left;
+
+						// MD RIGHT
+						mdX = right - mdWidth;
+
+					} else if (qrCodePositionHorizantal == 3) {
+
+						// QR RIGHT
+						qrX = right - qrWidth;
+
+						// MD LEFT
+						mdX = left;
+
+					} else {
+
+						// Both CENTER
+						// Put them side-by-side around center.
+
+						float totalWidth = qrWidth + gap + mdWidth;
+
+						float startX = centerX - (totalWidth / 2);
+
+						qrX = startX;
+
+						mdX = startX + qrWidth + gap;
+					}
+				}
+			}
+
+			// =====================================================
+			// DRAW QR
+			// =====================================================
+
+			if (isQrRequired) {
+
+				drawQrCode(canvas, qrX, contentY);
+			}
+
+			// =====================================================
+			// DRAW MD
+			// =====================================================
+
+			if (mdSignRequired) {
+
+				drawMdSignature(canvas, mdX, contentY);
+			}
+		}
+
+// =====================================================
+// DRAW MD SIGNATURE
+// =====================================================
+
+		private void drawMdSignature(PdfContentByte canvas, float mdX, float contentY) {
+
+			if (mdSign == null || mdSign.length == 0 || mdDoctorDetails == null) {
+
 				return;
 			}
 
 			try {
 
 				// =================================================
-				// CREATE IMAGE
+				// SIGNATURE
 				// =================================================
+
+				float signWidth = 100f;
+				float signHeight = 40f;
+
+				Image signImage = Image.getInstance(mdSign);
+
+				signImage.scaleAbsolute(signWidth, signHeight);
+
+				float signY = contentY - signHeight;
+
+				signImage.setAbsolutePosition(mdX, signY+20);
+
+				canvas.addImage(signImage);
+
+				// =================================================
+				// CENTER OF MD BLOCK
+				// =================================================
+
+				float mdCenterX = mdX + (signWidth / 2);
+
+				// =================================================
+				// DOCTOR NAME
+				// =================================================
+
+				String doctorName = safe(mdDoctorDetails.getDoctorName());
+
+				Font doctorNameFont = new Font(Font.HELVETICA, 11, Font.BOLD);
+
+				float doctorNameY = signY - 10;
+
+				ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase(doctorName, doctorNameFont),
+						mdCenterX, doctorNameY+20, 0);
+
+				// =================================================
+				// QUALIFICATION
+				// =================================================
+
+				String qualification = safe(mdDoctorDetails.getEducationQulification());
+
+				Font qualificationFont = new Font(Font.HELVETICA, 9, Font.BOLD);
+
+				float qualificationY = doctorNameY - 10;
+
+				ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase(qualification, qualificationFont),
+						mdCenterX, qualificationY+20, 0);
+
+			} catch (Exception e) {
+
+				throw new RuntimeException("Error while adding MD signature", e);
+			}
+		}
+
+// =====================================================
+// DRAW QR CODE
+// =====================================================
+
+		private void drawQrCode(PdfContentByte canvas, float qrX, float contentY) {
+
+			if (qrCode == null || qrCode.length == 0) {
+
+				return;
+			}
+
+			try {
 
 				Image qrImage = Image.getInstance(qrCode);
 
-				// =================================================
-				// QR SIZE
-				// =================================================
-
 				qrImage.scaleAbsolute(qrSize, qrSize);
 
-				// =================================================
-				// HORIZONTAL POSITION
-				//
-				// 1 = LEFT
-				// 2 = CENTER
-				// 3 = RIGHT
-				// =================================================
+				float qrY = contentY - qrSize;
 
-				float qrX;
-
-				if (qrCodePositionHorizantal == 1) {
-
-					// ---------------------------------------------
-					// LEFT
-					// ---------------------------------------------
-
-					qrX = left;
-
-				} else if (qrCodePositionHorizantal == 3) {
-
-					// ---------------------------------------------
-					// RIGHT
-					// ---------------------------------------------
-
-					qrX = right - qrSize;
-
-				} else {
-
-					// ---------------------------------------------
-					// CENTER
-					// ---------------------------------------------
-
-					qrX = centerX - (qrSize / 2);
-				}
-
-				// =================================================
-				// VERTICAL POSITION
-				//
-				// 1 = TOP
-				// 2 = BOTTOM
-				// =================================================
-
-				float qrY;
-
-				if (qrCodePositionVertical == 1) {
-
-					// ---------------------------------------------
-					// TOP
-					// ---------------------------------------------
-
-					qrY = lineY - 20 - qrSize;
-
-				} else {
-
-					// ---------------------------------------------
-					// BOTTOM
-					// ---------------------------------------------
-
-					qrY = document.bottomMargin() + 5;
-				}
-
-				// =================================================
-				// SET QR POSITION
-				// =================================================
-
-				qrImage.setAbsolutePosition(qrX, qrY);
-
-				// =================================================
-				// ADD QR
-				// =================================================
+				qrImage.setAbsolutePosition(qrX, qrY+20);
 
 				canvas.addImage(qrImage);
 

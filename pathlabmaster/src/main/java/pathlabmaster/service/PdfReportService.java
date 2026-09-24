@@ -1330,8 +1330,8 @@ public class PdfReportService {
 
 			canvas.setLineWidth(0.5f);
 
-			canvas.moveTo(left, lineY);
-			canvas.lineTo(right, lineY);
+			canvas.moveTo(left, lineY-80);
+			canvas.lineTo(right, lineY-80);
 
 			canvas.stroke();
 
@@ -1342,7 +1342,7 @@ public class PdfReportService {
 			Font footerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
 
 			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase("End of Report", footerFont), centerX,
-					lineY - 15, 0);
+					lineY - 95, 0);
 
 			// =====================================================
 			// DYNAMIC CONTENT ROW
@@ -1509,7 +1509,7 @@ public class PdfReportService {
 
 				float signY = contentY - signHeight;
 
-				signImage.setAbsolutePosition(mdX, signY+20);
+				signImage.setAbsolutePosition(mdX, signY-60);
 
 				canvas.addImage(signImage);
 
@@ -1530,7 +1530,7 @@ public class PdfReportService {
 				float doctorNameY = signY - 10;
 
 				ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase(doctorName, doctorNameFont),
-						mdCenterX, doctorNameY+20, 0);
+						mdCenterX, doctorNameY-60, 0);
 
 				// =================================================
 				// QUALIFICATION
@@ -1543,7 +1543,7 @@ public class PdfReportService {
 				float qualificationY = doctorNameY - 10;
 
 				ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase(qualification, qualificationFont),
-						mdCenterX, qualificationY+20, 0);
+						mdCenterX, qualificationY-60, 0);
 
 			} catch (Exception e) {
 
@@ -1570,7 +1570,7 @@ public class PdfReportService {
 
 				float qrY = contentY - qrSize;
 
-				qrImage.setAbsolutePosition(qrX, qrY+20);
+				qrImage.setAbsolutePosition(qrX, qrY-60);
 
 				canvas.addImage(qrImage);
 

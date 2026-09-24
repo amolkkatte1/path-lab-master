@@ -4,13 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,9 +22,11 @@ import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
 
 import pathlabmaster.dao.BillMasterRepository;
@@ -32,6 +34,7 @@ import pathlabmaster.dao.ClientConfigRepository;
 import pathlabmaster.dao.DoctorMasterRepository;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
+
 import pathlabmaster.pojo.BillMaster;
 import pathlabmaster.pojo.ClientConfig;
 import pathlabmaster.pojo.DoctorMaster;
@@ -39,8 +42,6 @@ import pathlabmaster.pojo.ParameterDetails;
 import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.pojo.PdfResponse;
 import pathlabmaster.pojo.ReportMaster;
-import pathlabmaster.utility.Response;
-import com.lowagie.text.pdf.PdfPageEventHelper;
 
 @Service
 public class PdfReportService {
@@ -60,30 +61,12 @@ public class PdfReportService {
 	@Autowired
 	private ClientConfigRepository clientConfigRepo;
 
+	// ============================================================
+	// GENERATE PDF
+	// ============================================================
+
 	public byte[] generatePdf(String fromDate, String toDate, Long labId, String firstName, String lastName,
 			Long patientId, String doctorName, Long doctorId) throws IOException {
-
-		/*
-		 * ============================================================ FILTER LOG
-		 * ============================================================
-		 */
-
-		System.out.println("================================");
-		System.out.println("PDF Report Filters");
-		System.out.println("================================");
-		System.out.println("From Date   : " + fromDate);
-		System.out.println("To Date     : " + toDate);
-		System.out.println("Lab ID      : " + labId);
-		System.out.println("First Name  : " + firstName);
-		System.out.println("Last Name   : " + lastName);
-		System.out.println("Patient ID  : " + patientId);
-		System.out.println("Doctor Name : " + doctorName);
-		System.out.println("Doctor ID   : " + doctorId);
-
-		/*
-		 * ============================================================ DATABASE DATA
-		 * ============================================================
-		 */
 
 		List<ReportMaster> reportMasterList = reportMasterRepo.filterReports(labId, fromDate, toDate, patientId);
 
@@ -93,11 +76,6 @@ public class PdfReportService {
 				lastName, patientId, doctorName, doctorId);
 
 		List<DoctorMaster> doctorList = doctorMasterRepo.findByLabId(labId);
-
-		/*
-		 * ============================================================ NULL SAFE LISTS
-		 * ============================================================
-		 */
 
 		if (reportMasterList == null) {
 			reportMasterList = List.of();
@@ -114,11 +92,6 @@ public class PdfReportService {
 		if (doctorList == null) {
 			doctorList = List.of();
 		}
-
-		/*
-		 * ============================================================ CREATE LOOKUP
-		 * MAPS ============================================================
-		 */
 
 		Map<Long, DoctorMaster> doctorMap = new HashMap<>();
 
@@ -150,11 +123,6 @@ public class PdfReportService {
 			}
 		}
 
-		/*
-		 * ============================================================ GET LAB NAME
-		 * ============================================================
-		 */
-
 		String labName = "";
 
 		if (!patientMasterList.isEmpty()) {
@@ -167,33 +135,13 @@ public class PdfReportService {
 			labName = "Lab Report";
 		}
 
-		/*
-		 * ============================================================ CREATE PDF
-		 * DOCUMENT
-		 *
-		 * A4 PORTRAIT ============================================================
-		 */
-
 		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-
-			/*
-			 * IMPORTANT:
-			 *
-			 * PageSize.A4 = PORTRAIT
-			 *
-			 * PageSize.A4.rotate() = LANDSCAPE
-			 */
 
 			Document document = new Document(PageSize.A4, 15, 15, 15, 15);
 
 			PdfWriter.getInstance(document, outputStream);
 
 			document.open();
-
-			/*
-			 * ======================================================== FONTS
-			 * ========================================================
-			 */
 
 			Font labNameFont = new Font(Font.HELVETICA, 14, Font.BOLD);
 
@@ -205,11 +153,6 @@ public class PdfReportService {
 
 			Font totalFont = new Font(Font.HELVETICA, 6, Font.BOLD);
 
-			/*
-			 * ======================================================== LAB NAME
-			 * ========================================================
-			 */
-
 			Paragraph labParagraph = new Paragraph(labName, labNameFont);
 
 			labParagraph.setAlignment(Element.ALIGN_CENTER);
@@ -217,11 +160,6 @@ public class PdfReportService {
 			labParagraph.setSpacingAfter(3);
 
 			document.add(labParagraph);
-
-			/*
-			 * ======================================================== DATE RANGE
-			 * ========================================================
-			 */
 
 			String dateRange = "From Date: " + (fromDate != null ? fromDate : "") + "    To Date: "
 					+ (toDate != null ? toDate : "");
@@ -234,49 +172,14 @@ public class PdfReportService {
 
 			document.add(dateParagraph);
 
-			/*
-			 * ======================================================== CREATE PDF TABLE
-			 *
-			 * 10 COLUMNS ========================================================
-			 */
-
 			PdfPTable table = new PdfPTable(10);
 
 			table.setWidthPercentage(100);
 
-			/*
-			 * ======================================================== PORTRAIT COLUMN
-			 * WIDTHS
-			 *
-			 * Total = 100
-			 *
-			 * More space given to: - Test List - Patient Name - Doctor Name
-			 * ========================================================
-			 */
+			table.setWidths(new float[] { 4f, 8f, 10f, 11f, 22f, 13f, 7f, 8f, 9f, 8f });
 
-			table.setWidths(new float[] {
-
-					4f, // Sr No
-					8f, // Registration Date
-					10f, // Reg No
-					11f, // Patient Name
-					22f, // Test List
-					13f, // Doctor
-					7f, // Total Amount
-					8f, // Collected Amount
-					9f, // Collected By Doctor
-					8f // Sharing
-			});
-
-			/*
-			 * ======================================================== TABLE HEADER
-			 * ========================================================
-			 */
-
-			String[] headers = {
-
-					"Sr No", "Registration Date", "Reg. No", "Patient Name", "Test List", "Referred Doctor Name",
-					"Total Amount", "Collected Amount", "Collected By Doctor", "Sharing" };
+			String[] headers = { "Sr No", "Registration Date", "Reg. No", "Patient Name", "Test List",
+					"Referred Doctor Name", "Total Amount", "Collected Amount", "Collected By Doctor", "Sharing" };
 
 			for (String header : headers) {
 
@@ -293,17 +196,7 @@ public class PdfReportService {
 				table.addCell(cell);
 			}
 
-			/*
-			 * ======================================================== REPEAT HEADER ON
-			 * EVERY PAGE ========================================================
-			 */
-
 			table.setHeaderRows(1);
-
-			/*
-			 * ======================================================== GRAND TOTALS
-			 * ========================================================
-			 */
 
 			BigDecimal grandTotalAmount = BigDecimal.ZERO;
 
@@ -313,11 +206,6 @@ public class PdfReportService {
 
 			BigDecimal grandCollectedByDoctor = BigDecimal.ZERO;
 
-			/*
-			 * ======================================================== DATA ROWS
-			 * ========================================================
-			 */
-
 			int srNo = 1;
 
 			for (PatientMaster patient : patientMasterList) {
@@ -326,38 +214,23 @@ public class PdfReportService {
 					continue;
 				}
 
-				Long patientIdCurrent = patient.getPatientId();
+				Long currentPatientId = patient.getPatientId();
 
-				if (patientIdCurrent == null) {
+				if (currentPatientId == null) {
 					continue;
 				}
 
-				/*
-				 * ==================================================== REPORT
-				 * ====================================================
-				 */
-
-				ReportMaster report = reportMap.get(patientIdCurrent);
+				ReportMaster report = reportMap.get(currentPatientId);
 
 				if (report == null) {
 					continue;
 				}
 
-				/*
-				 * ==================================================== BILL
-				 * ====================================================
-				 */
-
-				BillMaster bill = billMap.get(patientIdCurrent);
+				BillMaster bill = billMap.get(currentPatientId);
 
 				if (bill == null) {
 					continue;
 				}
-
-				/*
-				 * ==================================================== REGISTRATION DATE
-				 * ====================================================
-				 */
 
 				String registrationDate = "";
 
@@ -367,11 +240,6 @@ public class PdfReportService {
 
 					registrationDate = createdAt.substring(0, 10);
 				}
-
-				/*
-				 * ==================================================== PATIENT NAME
-				 * ====================================================
-				 */
 
 				String patientName = "";
 
@@ -383,17 +251,11 @@ public class PdfReportService {
 				if (patient.getLastName() != null && !patient.getLastName().isBlank()) {
 
 					if (!patientName.isBlank()) {
-
 						patientName += " ";
 					}
 
 					patientName += patient.getLastName();
 				}
-
-				/*
-				 * ==================================================== TEST LIST
-				 * ====================================================
-				 */
 
 				String testList = "";
 
@@ -402,58 +264,29 @@ public class PdfReportService {
 					testList = String.join(", ", report.getReportNameList().keySet());
 				}
 
-				/*
-				 * ==================================================== DOCTOR NAME
-				 * ====================================================
-				 */
-
 				String doctorName1 = patient.getDoctorName();
 
 				if (doctorName1 == null) {
-
 					doctorName1 = "";
 				}
-
-				/*
-				 * ==================================================== TOTAL AMOUNT
-				 * ====================================================
-				 */
 
 				BigDecimal totalAmount = bill.getTotalAmount();
 
 				if (totalAmount == null) {
-
 					totalAmount = BigDecimal.ZERO;
 				}
-
-				/*
-				 * ==================================================== COLLECTED AMOUNT
-				 * ====================================================
-				 */
 
 				BigDecimal collectedAmount = bill.getPaymentReceived();
 
 				if (collectedAmount == null) {
-
 					collectedAmount = BigDecimal.ZERO;
 				}
-
-				/*
-				 * ==================================================== COLLECTED BY DOCTOR
-				 * ====================================================
-				 */
 
 				BigDecimal collectedByDoctor = bill.getCollectedByDoctor();
 
 				if (collectedByDoctor == null) {
-
 					collectedByDoctor = BigDecimal.ZERO;
 				}
-
-				/*
-				 * ==================================================== SHARING PERCENTAGE
-				 * ====================================================
-				 */
 
 				Float sharingPercentage = 0.0f;
 
@@ -469,14 +302,9 @@ public class PdfReportService {
 					}
 				}
 
-				BigDecimal doctorSharingPercentage = BigDecimal.valueOf(sharingPercentage.doubleValue());
-
-				/*
-				 * ==================================================== SHARING CALCULATION
-				 * ====================================================
-				 */
-
 				BigDecimal sharing = BigDecimal.ZERO;
+
+				BigDecimal doctorSharingPercentage = BigDecimal.valueOf(sharingPercentage.doubleValue());
 
 				if (doctorSharingPercentage.compareTo(BigDecimal.ZERO) > 0) {
 
@@ -484,22 +312,11 @@ public class PdfReportService {
 							.multiply(doctorSharingPercentage).setScale(2, RoundingMode.HALF_UP);
 				}
 
-				/*
-				 * ==================================================== ADD PDF ROW
-				 * ====================================================
-				 */
-
 				addCell(table, String.valueOf(srNo++), dataFont, Element.ALIGN_CENTER);
 
 				addCell(table, registrationDate, dataFont, Element.ALIGN_CENTER);
 
-				/*
-				 * IMPORTANT:
-				 *
-				 * Reg No remains String.
-				 */
-
-				addCell(table, String.valueOf(patientIdCurrent), dataFont, Element.ALIGN_LEFT);
+				addCell(table, String.valueOf(currentPatientId), dataFont, Element.ALIGN_LEFT);
 
 				addCell(table, patientName, dataFont, Element.ALIGN_LEFT);
 
@@ -515,11 +332,6 @@ public class PdfReportService {
 
 				addCell(table, formatAmount(sharing), dataFont, Element.ALIGN_RIGHT);
 
-				/*
-				 * ==================================================== GRAND TOTALS
-				 * ====================================================
-				 */
-
 				grandTotalAmount = grandTotalAmount.add(totalAmount);
 
 				grandCollectedAmount = grandCollectedAmount.add(collectedAmount);
@@ -529,16 +341,7 @@ public class PdfReportService {
 				grandSharing = grandSharing.add(sharing);
 			}
 
-			/*
-			 * ======================================================== GRAND TOTAL ROW
-			 * ========================================================
-			 */
-
 			PdfPCell totalLabelCell = new PdfPCell(new Phrase("TOTAL", totalFont));
-
-			/*
-			 * Merge first 6 columns
-			 */
 
 			totalLabelCell.setColspan(6);
 
@@ -552,45 +355,15 @@ public class PdfReportService {
 
 			table.addCell(totalLabelCell);
 
-			/*
-			 * ======================================================== TOTAL AMOUNT
-			 * ========================================================
-			 */
-
 			addCell(table, formatAmount(grandTotalAmount), totalFont, Element.ALIGN_RIGHT);
-
-			/*
-			 * ======================================================== TOTAL COLLECTED
-			 * ========================================================
-			 */
 
 			addCell(table, formatAmount(grandCollectedAmount), totalFont, Element.ALIGN_RIGHT);
 
-			/*
-			 * ======================================================== TOTAL COLLECTED BY
-			 * DOCTOR ========================================================
-			 */
-
 			addCell(table, formatAmount(grandCollectedByDoctor), totalFont, Element.ALIGN_RIGHT);
-
-			/*
-			 * ======================================================== TOTAL SHARING
-			 * ========================================================
-			 */
 
 			addCell(table, formatAmount(grandSharing), totalFont, Element.ALIGN_RIGHT);
 
-			/*
-			 * ======================================================== ADD TABLE TO
-			 * DOCUMENT ========================================================
-			 */
-
 			document.add(table);
-
-			/*
-			 * ======================================================== CLOSE PDF
-			 * ========================================================
-			 */
 
 			document.close();
 
@@ -598,68 +371,59 @@ public class PdfReportService {
 		}
 	}
 
-	/*
-	 * ================================================================ ADD CELL
-	 * ================================================================
-	 */
-
-	private void addCell(PdfPTable table, String value, Font font, int alignment) {
-
-		PdfPCell cell = new PdfPCell(new Phrase(value != null ? value : "", font));
-
-		cell.setHorizontalAlignment(alignment);
-
-		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-
-		cell.setPadding(2);
-
-		cell.setBorder(Rectangle.BOX);
-
-		table.addCell(cell);
-	}
-
-	/*
-	 * ================================================================ FORMAT
-	 * AMOUNT ================================================================
-	 */
-
-	private String formatAmount(BigDecimal amount) {
-
-		if (amount == null) {
-
-			return "0.00";
-		}
-
-		return amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
-	}
-
-	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a");
+	// ============================================================
+	// CREATE INDIVIDUAL REPORT PDF
+	// ============================================================
 
 	public PdfResponse createPdf(Long patientId, String reportIds) throws Exception {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-		// =====================================================
-		// A4 Page
-		// =====================================================
+		// ========================================================
+		// PATIENT
+		// ========================================================
 
-		/*
-		 * IMPORTANT:
-		 *
-		 * Top margin is increased because patient details + Test Name / Result / Unit /
-		 * Reference Range are printed by page event on every page.
-		 */
 		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
+
+		if (patientDetails == null) {
+			throw new RuntimeException("Patient not found : " + patientId);
+		}
+
+		// ========================================================
+		// CLIENT CONFIG
+		// ========================================================
+
 		ClientConfig clientConfig = clientConfigRepo.findByLabId(patientDetails.getLabId());
-		int topMargin=clientConfig.getReportTopSpace();
-		Document document = new Document(PageSize.A4, 30, 30, (78+topMargin), 25);
-		
+
+		int topMargin = 20;
+
+		if (clientConfig != null && clientConfig.getReportTopSpace() != null) {
+
+			topMargin = clientConfig.getReportTopSpace();
+		}
+		int bottomMargin = 20;
+		if (clientConfig != null && clientConfig.getReportBottomSpace() != null) {
+
+			bottomMargin = clientConfig.getReportBottomSpace();
+		}
+		// ========================================================
+		// PAGE
+		//
+		// Bottom margin reserved for:
+		//
+		// -----------------------------
+		// End of Report
+		// -----------------------------
+		//
+		// ========================================================
+
+		Document document = new Document(PageSize.A4, 30, 30, 78 + topMargin, bottomMargin);
 
 		PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
-		// =====================================================
-		// Fonts
-		// =====================================================
+		// ========================================================
+		// FONTS
+		// ========================================================
 
 		Font normalFont = new Font(Font.HELVETICA, 10, Font.NORMAL);
 
@@ -669,74 +433,52 @@ public class PdfReportService {
 
 		Font boldFont1 = new Font(Font.HELVETICA, 9, Font.BOLD);
 
-		// =====================================================
-		// Get Patient
-		// =====================================================
-
-	
-
-		if (patientDetails == null) {
-
-			document.close();
-
-			throw new RuntimeException("Patient not found : " + patientId);
-		}
-
-		// =====================================================
-		// Get Report
-		// =====================================================
+		// ========================================================
+		// REPORT
+		// ========================================================
 
 		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
 
 		if (reportDetails == null) {
 
-			document.close();
-
 			throw new RuntimeException("Report not found for patient : " + patientId);
 		}
 
-		// =====================================================
-		// PAGE HEADER
+		// ========================================================
+		// PAGE EVENT
 		//
-		// Patient details + column header will automatically
-		// appear on every page.
-		// =====================================================
+		// Header + column header + End of Report footer
+		// are handled automatically on every page.
+		// ========================================================
 
-		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont,topMargin);
+		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont,
+				topMargin);
 
 		writer.setPageEvent(pageHeader);
 
-		// =====================================================
-		// Open Document
-		// =====================================================
+		// ========================================================
+		// OPEN DOCUMENT
+		// ========================================================
 
 		document.open();
 
-		// =====================================================
-		// IMPORTANT
-		//
-		// DO NOT add patientTable here.
-		//
-		// It is already printed by ReportPageHeader.
-		// =====================================================
-
-		// =====================================================
-		// Report IDs
-		// =====================================================
+		// ========================================================
+		// REPORT IDS
+		// ========================================================
 
 		List<String> reportIdList = Arrays.asList(reportIds.split("\\|"));
 
-		// =====================================================
-		// Completed Tests
-		// =====================================================
+		// ========================================================
+		// COMPLETED TESTS
+		// ========================================================
 
 		Map<String, List<ParameterDetails>> reportOriginal = reportDetails.getCompletedTest();
 
 		Map<String, List<ParameterDetails>> reports = new HashMap<>();
 
-		// =====================================================
-		// Convert Report IDs
-		// =====================================================
+		// ========================================================
+		// SHORT REPORT IDS
+		// ========================================================
 
 		if (reportOriginal != null) {
 
@@ -753,9 +495,11 @@ public class PdfReportService {
 			}
 		}
 
-		// =====================================================
-		// Generate Tests
-		// =====================================================
+		// ========================================================
+		// GROUP TESTS
+		// ========================================================
+
+		Map<String, List<List<ParameterDetails>>> groupedTests = new LinkedHashMap<>();
 
 		for (String reportId : reportIdList) {
 
@@ -768,157 +512,223 @@ public class PdfReportService {
 
 			List<ParameterDetails> testDetails = reports.get(reportId);
 
-			// =================================================
-			// Test Not Found
-			// =================================================
-
 			if (testDetails == null || testDetails.isEmpty()) {
 
 				continue;
 			}
 
-			// =================================================
-			// Sort By Sequence
-			// =================================================
+			// ====================================================
+			// SORT BY SEQUENCE
+			// ====================================================
 
 			testDetails.sort(
 					Comparator.comparing(ParameterDetails::getSequence, Comparator.nullsLast(Integer::compareTo)));
 
-			// =================================================
-			// Test Name
-			// =================================================
+			// ====================================================
+			// GROUP NAME
+			// ====================================================
 
-			String testName = "";
+			String groupName = "";
 
 			for (ParameterDetails parameter : testDetails) {
 
 				if (parameter.getSequence() != null && parameter.getSequence() == 1) {
 
-					testName = safe(parameter.getParameterName());
+					groupName = safe(parameter.getParameterName());
 
 					break;
 				}
 			}
 
-			// =================================================
-			// Create Test Title
-			// =================================================
+			if (groupName == null || groupName.trim().isEmpty()) {
 
-			PdfPTable testTitleTable = createTestTitleTable(testName, boldFont);
-
-			// =================================================
-			// Create ONLY parameter rows
-			//
-			// NO HEADER HERE
-			// =================================================
-
-			PdfPTable testTable = createTestTable(testDetails, normalFont, boldFont, normalFont1, boldFont1);
-
-			// =================================================
-			// Calculate approximate test height
-			// =================================================
-
-			float requiredHeight = calculateTestHeight(testDetails);
-
-			// =================================================
-			// Current available position
-			// =================================================
-
-			float currentY = writer.getVerticalPosition(true);
-
-			float availableHeight = currentY - document.bottomMargin();
-
-			// =================================================
-			// If complete test doesn't fit
-			// =================================================
-
-			if (requiredHeight > availableHeight) {
-
-				document.newPage();
-
-				/*
-				 * Do NOT manually add patient table or column header here.
-				 *
-				 * PdfPageEventHelper will automatically print:
-				 *
-				 * Patient details Test Name | Result | Unit | Reference Range
-				 *
-				 * on the new page.
-				 */
-
+				groupName = "OTHER";
 			}
 
-			// =================================================
-			// Complete Test Wrapper
-			// =================================================
+			// ====================================================
+			// ADD TEST TO GROUP
+			// ====================================================
 
-			PdfPTable completeTestTable = new PdfPTable(1);
-
-			completeTestTable.setWidthPercentage(100);
-
-			/*
-			 * Keep title + all parameter rows together.
-			 */
-			completeTestTable.setKeepTogether(true);
-
-			// =================================================
-			// Test Title
-			// =================================================
-
-			PdfPCell titleCell = new PdfPCell(testTitleTable);
-
-			titleCell.setBorder(PdfPCell.NO_BORDER);
-
-			titleCell.setPadding(0);
-
-			completeTestTable.addCell(titleCell);
-
-			// =================================================
-			// Parameter Table
-			// =================================================
-
-			PdfPCell parameterCell = new PdfPCell(testTable);
-
-			parameterCell.setBorder(PdfPCell.NO_BORDER);
-
-			parameterCell.setPadding(0);
-
-			completeTestTable.addCell(parameterCell);
-
-			// =================================================
-			// Add Complete Test
-			// =================================================
-
-			document.add(completeTestTable);
-
-			// =================================================
-			// Space Between Tests
-			// =================================================
-
-			Paragraph space = new Paragraph(" ");
-
-			space.setLeading(2);
-
-			document.add(space);
+			groupedTests.computeIfAbsent(groupName, k -> new ArrayList<>()).add(testDetails);
 		}
 
-		// =====================================================
-		// Close
-		// =====================================================
+		// ========================================================
+		// GROUPS
+		// ========================================================
+
+		int groupIndex = 0;
+
+		for (Map.Entry<String, List<List<ParameterDetails>>> groupEntry : groupedTests.entrySet()) {
+
+			String groupName = groupEntry.getKey();
+
+			List<List<ParameterDetails>> testsInGroup = groupEntry.getValue();
+
+			// ====================================================
+			// GROUP TITLE
+			// ====================================================
+
+			addGroupTitle(document, groupName, boldFont);
+
+			// ====================================================
+			// TESTS
+			// ====================================================
+
+			for (int testIndex = 0; testIndex < testsInGroup.size(); testIndex++) {
+
+				List<ParameterDetails> testDetails = testsInGroup.get(testIndex);
+
+				// =================================================
+				// PARAMETERS WITHOUT SEQUENCE 1
+				// =================================================
+
+				List<ParameterDetails> parametersForTest = new ArrayList<>();
+
+				for (ParameterDetails parameter : testDetails) {
+
+					if (parameter.getSequence() != null && parameter.getSequence() == 1) {
+
+						continue;
+					}
+
+					parametersForTest.add(parameter);
+				}
+
+				// =================================================
+				// TEST TABLE
+				// =================================================
+
+				PdfPTable testTable = createTestTable(parametersForTest, normalFont, boldFont, normalFont1, boldFont1);
+
+				// =================================================
+				// HEIGHT
+				// =================================================
+
+				float requiredTestHeight = calculateTestHeight(testDetails);
+
+				requiredTestHeight += 4;
+
+				// =================================================
+				// AVAILABLE SPACE
+				// =================================================
+
+				float currentY = writer.getVerticalPosition(true);
+
+				float availableHeight = currentY - document.bottomMargin();
+
+				// =================================================
+				// DOES TEST FIT?
+				// =================================================
+
+				if (requiredTestHeight > availableHeight) {
+
+					// =============================================
+					// NEW PAGE
+					// =============================================
+
+					document.newPage();
+
+					// =============================================
+					// REPEAT GROUP NAME
+					// =============================================
+
+					addGroupTitle(document, groupName, boldFont);
+				}
+
+				// =================================================
+				// TEST WRAPPER
+				// =================================================
+
+				PdfPTable testWrapper = new PdfPTable(1);
+
+				testWrapper.setWidthPercentage(100);
+
+				testWrapper.setKeepTogether(true);
+
+				PdfPCell testCell = new PdfPCell(testTable);
+
+				testCell.setBorder(PdfPCell.NO_BORDER);
+
+				testCell.setPadding(0);
+
+				testWrapper.addCell(testCell);
+
+				// =================================================
+				// ADD TEST
+				// =================================================
+
+				document.add(testWrapper);
+
+				// =================================================
+				// NO BORDER / NO SEPARATOR AFTER TEST
+				// =================================================
+			}
+
+			// ====================================================
+			// SPACE BETWEEN GROUPS
+			// ====================================================
+
+			groupIndex++;
+
+			if (groupIndex < groupedTests.size()) {
+
+				Paragraph groupSpace = new Paragraph(" ");
+
+				groupSpace.setLeading(2);
+
+				document.add(groupSpace);
+			}
+		}
+
+		// ========================================================
+		// IMPORTANT
+		//
+		// NO BORDER AFTER EACH TEST.
+		//
+		// "End of Report" is NOT added here.
+		//
+		// It is handled by ReportPageHeader.onEndPage()
+		// and therefore appears on every page.
+		// ========================================================
 
 		document.close();
 
-		// =====================================================
-		// Return PDF
-		// =====================================================
+		// ========================================================
+		// RESPONSE
+		// ========================================================
 
-		return new PdfResponse(outputStream.toByteArray(), "Report-" + safe(patientDetails.getFirstName()) + " "
-				+ safe(patientDetails.getMiddleName()) + " " + safe(patientDetails.getLastName()) + ".pdf");
+		String fileName = "Report-" + safe(patientDetails.getFirstName()) + " " + safe(patientDetails.getMiddleName())
+				+ " " + safe(patientDetails.getLastName()) + ".pdf";
+
+		return new PdfResponse(outputStream.toByteArray(), fileName);
 	}
-	/*
-	 * ========================================================= PATIENT TABLE
-	 * =========================================================
-	 */
+
+	// ============================================================
+	// ADD GROUP TITLE
+	// ============================================================
+
+	private void addGroupTitle(Document document, String groupName, Font boldFont) throws Exception {
+
+		PdfPTable groupTitleTable = createTestTitleTable(groupName, boldFont);
+
+		PdfPTable groupTitleWrapper = new PdfPTable(1);
+
+		groupTitleWrapper.setWidthPercentage(100);
+
+		PdfPCell groupTitleCell = new PdfPCell(groupTitleTable);
+
+		groupTitleCell.setBorder(PdfPCell.NO_BORDER);
+
+		groupTitleCell.setPadding(0);
+
+		groupTitleWrapper.addCell(groupTitleCell);
+
+		document.add(groupTitleWrapper);
+	}
+
+	// ============================================================
+	// PATIENT TABLE
+	// ============================================================
 
 	private PdfPTable createPatientTable(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails,
 			Font boldFont) throws Exception {
@@ -928,10 +738,6 @@ public class PdfReportService {
 		patientTable.setWidthPercentage(100);
 
 		patientTable.setWidths(new float[] { 15, 50, 15, 30 });
-
-		// =====================================================
-		// Row 1
-		// =====================================================
 
 		addPatientCell(patientTable, "Reg No", boldFont, Element.ALIGN_LEFT);
 
@@ -943,10 +749,6 @@ public class PdfReportService {
 				": " + safe(patientDetails.getGender()) + " / " + safe(patientDetails.getYear()) + "Y", boldFont,
 				Element.ALIGN_RIGHT);
 
-		// =====================================================
-		// Row 2
-		// =====================================================
-
 		addPatientCell(patientTable, "Name", boldFont, Element.ALIGN_LEFT);
 
 		addPatientCell(patientTable, ": " + safe(patientDetails.getFirstName()) + " "
@@ -957,10 +759,6 @@ public class PdfReportService {
 
 		addPatientCell(patientTable, ": " + safe(patientDetails.getCreatedAt()), boldFont, Element.ALIGN_RIGHT);
 
-		// =====================================================
-		// Row 3
-		// =====================================================
-
 		addPatientCell(patientTable, "Referred Dr", boldFont, Element.ALIGN_LEFT);
 
 		addPatientCell(patientTable, ": " + safe(patientDetails.getDoctorName()), boldFont, Element.ALIGN_LEFT);
@@ -970,46 +768,13 @@ public class PdfReportService {
 		addPatientCell(patientTable, ": " + safe(reportDetails.getCreatedAt()), boldFont, Element.ALIGN_RIGHT);
 
 		patientTable.addCell(createEmptyCell(4));
+
 		return patientTable;
 	}
 
-	/*
-	 * ========================================================= Merge Patient Table
-	 * + Bottom Line =========================================================
-	 */
-
-	private PdfPTable mergePatientTableWithLine(PdfPTable patientTable, PdfPTable lineTable) {
-
-		PdfPTable wrapper = new PdfPTable(1);
-
-		wrapper.setWidthPercentage(100);
-
-		PdfPCell patientCell = new PdfPCell(patientTable);
-
-		patientCell.setBorder(PdfPCell.NO_BORDER);
-
-		patientCell.setPadding(0);
-
-		wrapper.addCell(patientCell);
-
-		PdfPCell lineCell = new PdfPCell(lineTable);
-
-		lineCell.setBorder(PdfPCell.NO_BORDER);
-
-		lineCell.setPaddingTop(1);
-		lineCell.setPaddingBottom(2);
-		lineCell.setPaddingLeft(0);
-		lineCell.setPaddingRight(0);
-
-		wrapper.addCell(lineCell);
-
-		return wrapper;
-	}
-
-	/*
-	 * ========================================================= TEST TITLE
-	 * =========================================================
-	 */
+	// ============================================================
+	// TEST TITLE
+	// ============================================================
 
 	private PdfPTable createTestTitleTable(String testName, Font boldFont) {
 
@@ -1019,32 +784,17 @@ public class PdfReportService {
 
 		PdfPCell cell = new PdfPCell(new Phrase(testName, boldFont));
 
-		// -----------------------------------------------------
-		// NO OUTER BOX
-		// -----------------------------------------------------
-
-		cell.setBorder(PdfPCell.NO_BORDER);
-
-		// -----------------------------------------------------
-		// Top + Bottom horizontal lines
-		// -----------------------------------------------------
-
-//		cell.setBorder(PdfPCell.TOP | PdfPCell.BOTTOM);
+		// IMPORTANT:
+		// Use TOP | BOTTOM if you want borders.
+		cell.setBorder(PdfPCell.TOP | PdfPCell.BOTTOM);
 
 		cell.setBorderWidthTop(0.8f);
-		cell.setBorderWidthBottom(0.8f);
 
-		// -----------------------------------------------------
-		// Alignment
-		// -----------------------------------------------------
+		cell.setBorderWidthBottom(0.8f);
 
 		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 
 		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-
-		// -----------------------------------------------------
-		// Compact spacing
-		// -----------------------------------------------------
 
 		cell.setPaddingTop(3);
 
@@ -1059,10 +809,9 @@ public class PdfReportService {
 		return table;
 	}
 
-	/*
-	 * ========================================================= TEST TABLE
-	 * =========================================================
-	 */
+	// ============================================================
+	// TEST TABLE
+	// ============================================================
 
 	private PdfPTable createTestTable(List<ParameterDetails> testDetails, Font normalFont, Font boldFont,
 			Font normalFont1, Font boldFont1) {
@@ -1071,30 +820,13 @@ public class PdfReportService {
 
 		testTable.setWidthPercentage(100);
 
-		// =====================================================
-		// Column Widths
-		// =====================================================
-
 		testTable.setWidths(new float[] { 40, 15, 15, 30 });
-
-		// =====================================================
-		// IMPORTANT
-		//
-		// NO HEADER HERE
-		//
-		// Header is printed once per page by
-		// ReportPageHeader.
-		// =====================================================
-
-		// =====================================================
-		// Parameter Rows
-		// =====================================================
 
 		for (ParameterDetails parameter : testDetails) {
 
-			// =================================================
-			// Sequence 1 = Test Name
-			// =================================================
+			// ====================================================
+			// SEQUENCE 1
+			// ====================================================
 
 			if (parameter.getSequence() != null && parameter.getSequence() == 1) {
 
@@ -1109,22 +841,14 @@ public class PdfReportService {
 
 			String referenceRange = getReferenceRange(parameter);
 
-			// =================================================
-			// Parameter Name Font
-			// =================================================
-
 			Font parameterNameFont = parameter.getSequence() != null && parameter.getSequence() == 2 ? boldFont
 					: Boolean.TRUE.equals(parameter.getIsNameBold()) ? boldFont1 : normalFont1;
 
-			// =================================================
-			// Parameter Name
-			// =================================================
-
 			addParameterCell(testTable, parameterName, parameterNameFont, Element.ALIGN_LEFT);
 
-			// =================================================
-			// Description Parameter
-			// =================================================
+			// ====================================================
+			// DESCRIPTION
+			// ====================================================
 
 			if (Boolean.TRUE.equals(parameter.getIsValueDiscription())) {
 
@@ -1136,35 +860,25 @@ public class PdfReportService {
 				descriptionCell.setColspan(3);
 
 				descriptionCell.setPaddingLeft(5);
+
 				descriptionCell.setPaddingRight(5);
 
 				descriptionCell.setPaddingTop(1);
+
 				descriptionCell.setPaddingBottom(1);
 
 				descriptionCell.setHorizontalAlignment(Element.ALIGN_LEFT);
 
-				descriptionCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+				descriptionCell.setVerticalAlignment(Element.ALIGN_TOP);
 
 				testTable.addCell(descriptionCell);
 
 			} else {
 
-				// =================================================
-				// Result
-				// =================================================
-
 				addParameterCell(testTable, value, Boolean.TRUE.equals(parameter.getIsBold()) ? boldFont1 : normalFont1,
 						Element.ALIGN_LEFT);
 
-				// =================================================
-				// Unit
-				// =================================================
-
 				addParameterCell(testTable, unit, normalFont1, Element.ALIGN_LEFT);
-
-				// =================================================
-				// Reference Range
-				// =================================================
 
 				addParameterCell(testTable, referenceRange, normalFont1, Element.ALIGN_LEFT);
 			}
@@ -1173,10 +887,10 @@ public class PdfReportService {
 		return testTable;
 	}
 
-	/*
-	 * ========================================================= HEADER CELL
-	 * =========================================================
-	 */
+	// ============================================================
+	// COLUMN HEADER
+	// ============================================================
+
 	private PdfPTable createColumnHeaderTable(Font boldFont) {
 
 		PdfPTable table = new PdfPTable(4);
@@ -1184,56 +898,36 @@ public class PdfReportService {
 		table.setWidthPercentage(100);
 
 		table.setWidths(new float[] { 40, 15, 15, 30 });
-		
-
-		// =====================================================
-		// Test Name
-		// =====================================================
 
 		addHeaderCell(table, "Test Name", boldFont, Element.ALIGN_LEFT);
 
-		// =====================================================
-		// Result
-		// =====================================================
-
 		addHeaderCell(table, "Result", boldFont, Element.ALIGN_LEFT);
 
-		// =====================================================
-		// Unit
-		// =====================================================
-
 		addHeaderCell(table, "Unit", boldFont, Element.ALIGN_LEFT);
-
-		// =====================================================
-		// Reference Range
-		// =====================================================
 
 		addHeaderCell(table, "Reference Range", boldFont, Element.ALIGN_LEFT);
 
 		return table;
 	}
 
+	// ============================================================
+	// HEADER CELL
+	// ============================================================
+
 	private void addHeaderCell(PdfPTable table, String text, Font font, int alignment) {
 
 		PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
 
-		// =====================================================
-		// ONLY TOP + BOTTOM
-		// =====================================================
-
 		cell.setBorder(PdfPCell.TOP);
 
 		cell.setBorderWidthTop(0.1f);
-//		cell.setBorderWidthBottom(0.8f);
-
-		// =====================================================
-		// Compact spacing
-		// =====================================================
 
 		cell.setPaddingLeft(5);
+
 		cell.setPaddingRight(5);
 
 		cell.setPaddingTop(2);
+
 		cell.setPaddingBottom(4);
 
 		cell.setHorizontalAlignment(alignment);
@@ -1243,83 +937,71 @@ public class PdfReportService {
 		table.addCell(cell);
 	}
 
-	/*
-	 * ========================================================= PARAMETER CELL
-	 * =========================================================
-	 */
+	// ============================================================
+	// PARAMETER CELL
+	// ============================================================
 
 	private void addParameterCell(PdfPTable table, String text, Font font, int alignment) {
 
 		PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
+
 		cell.setBorder(PdfPCell.NO_BORDER);
+
 		cell.setPaddingLeft(5);
+
 		cell.setPaddingRight(5);
+
 		cell.setPaddingTop(1);
+
 		cell.setPaddingBottom(1);
+
 		cell.setHorizontalAlignment(alignment);
+
 		cell.setVerticalAlignment(Element.ALIGN_TOP);
+
 		table.addCell(cell);
 	}
 
-	/*
-	 * ========================================================= REFERENCE RANGE
-	 * =========================================================
-	 */
+	// ============================================================
+	// REFERENCE RANGE
+	// ============================================================
 
 	private String getReferenceRange(ParameterDetails parameter) {
 
 		if (parameter.getLowerRange() != null && parameter.getUpperRange() != null) {
+
 			return parameter.getLowerRange().stripTrailingZeros().toPlainString() + " - "
 					+ parameter.getUpperRange().stripTrailingZeros().toPlainString();
 		}
+
 		if (parameter.getParameterRange() != null && !parameter.getParameterRange().isEmpty()) {
+
 			return parameter.getParameterRange();
 		}
+
 		return "";
 	}
 
-	/*
-	 * ========================================================= APPROXIMATE TEST
-	 * HEIGHT =========================================================
-	 */
+	// ============================================================
+	// CALCULATE TEST HEIGHT
+	// ============================================================
 
 	private float calculateTestHeight(List<ParameterDetails> testDetails) {
 
 		float height = 0;
 
-		// =====================================================
-		// Test title
-		// =====================================================
-
 		height += 22;
-
-		// =====================================================
-		// Header
-		// =====================================================
 
 		height += 20;
 
-		// =====================================================
-		// Parameter rows
-		// =====================================================
-
 		for (ParameterDetails parameter : testDetails) {
 
-			// Sequence 1 = test name
 			if (parameter.getSequence() != null && parameter.getSequence() == 1) {
 
 				continue;
 			}
 
-			// -------------------------------------------------
-			// Normal row
-			// -------------------------------------------------
-
 			height += 17;
-
-			// -------------------------------------------------
-			// Description row
-			// -------------------------------------------------
 
 			if (Boolean.TRUE.equals(parameter.getIsValueDiscription())) {
 
@@ -1344,10 +1026,6 @@ public class PdfReportService {
 				}
 			}
 
-			// -------------------------------------------------
-			// Multi-line reference range
-			// -------------------------------------------------
-
 			String range = getReferenceRange(parameter);
 
 			if (range.contains("\n")) {
@@ -1358,19 +1036,14 @@ public class PdfReportService {
 			}
 		}
 
-		// =====================================================
-		// Small gap after test
-		// =====================================================
-
 		height += 5;
 
 		return height;
 	}
 
-	/*
-	 * ========================================================= EMPTY CELL
-	 * =========================================================
-	 */
+	// ============================================================
+	// EMPTY CELL
+	// ============================================================
 
 	private PdfPCell createEmptyCell(int colspan) {
 
@@ -1385,67 +1058,73 @@ public class PdfReportService {
 		return cell;
 	}
 
-	/*
-	 * ========================================================= SAFE STRING
-	 * =========================================================
-	 */
+	// ============================================================
+	// SAFE
+	// ============================================================
 
 	private String safe(Object value) {
 
 		return value != null ? String.valueOf(value) : "";
 	}
 
-	/*
-	 * ========================================================= PATIENT CELL
-	 * =========================================================
-	 */
+	// ============================================================
+	// PATIENT CELL
+	// ============================================================
+
 	private void addPatientCell(PdfPTable table, String text, Font font, int alignment) {
 
 		PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
 
-		// =====================================================
-		// NO BORDER
-		// =====================================================
 		cell.setBorder(PdfPCell.NO_BORDER);
 
-		// =====================================================
-		// SPACING
-		// =====================================================
 		cell.setPaddingLeft(0);
+
 		cell.setPaddingRight(0);
+
 		cell.setPaddingTop(1);
+
 		cell.setPaddingBottom(1);
 
-		// =====================================================
-		// ALIGNMENT
-		// =====================================================
 		cell.setHorizontalAlignment(alignment);
+
 		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 
-		// =====================================================
-		// ADD CELL
-		// =====================================================
 		table.addCell(cell);
 	}
+
+	// ============================================================
+	// PAGE HEADER + FOOTER EVENT
+	// ============================================================
 
 	private class ReportPageHeader extends PdfPageEventHelper {
 
 		private final PatientMaster patientDetails;
+
 		private final ReportMaster reportDetails;
+
 		private final Long patientId;
 
 		private final Font boldFont;
+
 		private final int topMargin;
 
-		public ReportPageHeader(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails,
-				Font boldFont, int topMargin) {
+		public ReportPageHeader(Long patientId, PatientMaster patientDetails, ReportMaster reportDetails, Font boldFont,
+				int topMargin) {
 
 			this.patientId = patientId;
+
 			this.patientDetails = patientDetails;
+
 			this.reportDetails = reportDetails;
+
 			this.boldFont = boldFont;
+
 			this.topMargin = topMargin;
 		}
+
+		// ========================================================
+		// THIS METHOD RUNS AUTOMATICALLY FOR EVERY PAGE
+		// ========================================================
 
 		@Override
 		public void onEndPage(PdfWriter writer, Document document) {
@@ -1454,63 +1133,126 @@ public class PdfReportService {
 
 				PdfContentByte canvas = writer.getDirectContent();
 
-				// =====================================================
-				// Save current canvas state
-				// =====================================================
-
 				canvas.saveState();
-
-				// =====================================================
-				// Header table
-				// =====================================================
-
-				PdfPTable headerTable = createPatientTable(patientId, patientDetails, reportDetails, boldFont);
-
-				// =====================================================
-				// Test column header
-				// =====================================================
-
-				PdfPTable columnHeaderTable = createColumnHeaderTable(boldFont);
-
-				// =====================================================
-				// Position
-				// =====================================================
 
 				float pageWidth = document.getPageSize().getWidth();
 
+				float pageHeight = document.getPageSize().getHeight();
+
 				float left = document.leftMargin();
 
-				float width = pageWidth - document.leftMargin() - document.rightMargin();
+				float right = pageWidth - document.rightMargin();
 
-				// =====================================================
-				// Patient header
-				// =====================================================
+				float width = right - left;
+
+				// =================================================
+				// PATIENT HEADER
+				// =================================================
+
+				PdfPTable headerTable = createPatientTable(patientId, patientDetails, reportDetails, boldFont);
 
 				headerTable.setTotalWidth(width);
-				headerTable.writeSelectedRows(0, -1, left, document.getPageSize().getHeight() - (20+topMargin), canvas);
 
-				// =====================================================
-				// Column header
-				// =====================================================
+				float headerY = pageHeight - (20 + topMargin);
+
+				headerTable.writeSelectedRows(0, -1, left, headerY, canvas);
+
+				// =================================================
+				// COLUMN HEADER
+				// =================================================
+
+				PdfPTable columnHeaderTable = createColumnHeaderTable(boldFont);
 
 				float patientHeaderHeight = headerTable.getTotalHeight();
 
 				columnHeaderTable.setTotalWidth(width);
 
-				float columnHeaderY = document.getPageSize().getHeight() - (20+topMargin) - patientHeaderHeight - 5;
+				float columnHeaderY = headerY - patientHeaderHeight - 5;
 
 				columnHeaderTable.writeSelectedRows(0, -1, left, columnHeaderY, canvas);
 
-				// =====================================================
-				// Restore
-				// =====================================================
+				// =================================================
+				// FOOTER
+				//
+				// This is now printed on EVERY page.
+				// =================================================
+
+				drawEndOfReport(canvas, document);
 
 				canvas.restoreState();
 
 			} catch (Exception e) {
-				throw new RuntimeException("Error while creating PDF page header", e);
+
+				throw new RuntimeException("Error while creating PDF page header/footer", e);
 			}
+		}
+
+		// ========================================================
+		// DRAW FOOTER
+		// ========================================================
+
+		private void drawEndOfReport(PdfContentByte canvas, Document document) {
+
+			float pageWidth = document.getPageSize().getWidth();
+
+			float left = document.leftMargin();
+
+			float right = pageWidth - document.rightMargin();
+
+			// =====================================================
+			// FOOTER LINE
+			// =====================================================
+
+			float lineY = document.bottomMargin() + 18;
+
+			canvas.setLineWidth(0.5f);
+
+			canvas.moveTo(left, lineY);
+
+			canvas.lineTo(right, lineY);
+
+			canvas.stroke();
+
+			// =====================================================
+			// END OF REPORT
+			// =====================================================
+
+			Font footerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
+
+			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase("End of Report", footerFont),
+					(left + right) / 2, document.bottomMargin() + 4, 0);
 		}
 	}
 
+	// ============================================================
+	// ADD CELL
+	// ============================================================
+
+	private void addCell(PdfPTable table, String value, Font font, int alignment) {
+
+		PdfPCell cell = new PdfPCell(new Phrase(value != null ? value : "", font));
+
+		cell.setHorizontalAlignment(alignment);
+
+		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+		cell.setPadding(2);
+
+		cell.setBorder(Rectangle.BOX);
+
+		table.addCell(cell);
+	}
+
+	// ============================================================
+	// FORMAT AMOUNT
+	// ============================================================
+
+	private String formatAmount(BigDecimal amount) {
+
+		if (amount == null) {
+			return "0.00";
+		}
+
+		return amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+	}
 }

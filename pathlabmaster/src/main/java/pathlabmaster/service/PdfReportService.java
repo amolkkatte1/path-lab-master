@@ -1887,30 +1887,40 @@ public class PdfReportService {
 // DRAW QR CODE
 // =====================================================
 
+		
 		private void drawQrCode(PdfContentByte canvas, float qrX, float contentY) {
 
-			if (qrCode == null || qrCode.length == 0) {
+		    if (qrCode == null || qrCode.length == 0) {
+		        return;
+		    }
 
-				return;
-			}
+		    try {
 
-			try {
+		        Image qrImage = Image.getInstance(qrCode);
 
-				Image qrImage = Image.getInstance(qrCode);
+		        // =====================================================
+		        // QR SIZE
+		        // =====================================================
+		        qrImage.scaleAbsolute(qrSize, qrSize);
 
-				qrImage.scaleAbsolute(qrSize, qrSize);
+		        // =====================================================
+		        // POSITION
+		        // =====================================================
+		        float qrY = contentY - qrSize - 60;
 
-				float qrY = contentY - qrSize;
+		        qrImage.setAbsolutePosition(qrX, qrY);
 
-				qrImage.setAbsolutePosition(qrX, qrY - 60);
+		        // =====================================================
+		        // ADD QR CODE
+		        // =====================================================
+		        canvas.addImage(qrImage);
 
-				canvas.addImage(qrImage);
-
-			} catch (Exception e) {
-
-				throw new RuntimeException("Error while adding QR code", e);
-			}
+		    } catch (Exception e) {
+		        throw new RuntimeException("Error while adding QR code", e);
+		    }
 		}
+		
+
 	}
 
 	// ============================================================

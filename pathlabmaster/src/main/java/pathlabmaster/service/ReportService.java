@@ -162,17 +162,23 @@ public class ReportService implements IReportService {
 		List<PatientMaster> patientMaster = patientMasterRepo.findByLabIdAndCreatedAtStartingWith(labId,today);
 		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
 		for(ReportMaster reportMaster:reportMasterList) {
-			Map<String, List<ParameterDetails>> tempPendigTest = new HashMap<>();
+			
+			
 			List<ParameterDetails> list = new ArrayList<>();
-			for(String test: reportMaster.getPendingTest1().keySet()) {
-				tempPendigTest.put(test, list);
+				if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
+				Map<String, List<ParameterDetails>> tempPendigTest = new HashMap<>();
+				for(String test: reportMaster.getPendingTest1().keySet()) {
+					tempPendigTest.put(test, list);
+				}
+				reportMaster.setPendingTest(tempPendigTest);
 			}
-			reportMaster.setPendingTest(tempPendigTest);
-			Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
-			for(String test: reportMaster.getCompletedTest().keySet()) {
-				tempCompletedTest.put(test, list);
+			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+				Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
+				for(String test: reportMaster.getCompletedTest().keySet()) {
+					tempCompletedTest.put(test, list);
+				}
+				reportMaster.setPendingTest(tempCompletedTest);
 			}
-			reportMaster.setPendingTest(tempCompletedTest);
 			if (reportMaster.getPendingTest() != null && !reportMaster.getPendingTest().isEmpty() && patientMap.containsKey(reportMaster.getPatientId())) {
 				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
 			}
@@ -204,9 +210,9 @@ public class ReportService implements IReportService {
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(parameterIds);
 			Map<Long, ParameterMaster> parameterMasterMap = parameterMasterList.stream()
 					.collect(Collectors.toMap(ParameterMaster::getParameterId, parameter -> parameter));
-			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
 				reportMaster
-						.setPendingTest(convertReportMasterDataForUI(reportMaster.getCompletedTest1(), testMasterMap,parameterMasterMap));
+						.setPendingTest(convertReportMasterDataForUI(reportMaster.getPendingTest1(), testMasterMap,parameterMasterMap));
 			}
 			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
 				reportMaster.setCompletedTest(
@@ -277,6 +283,22 @@ public class ReportService implements IReportService {
 		List<PatientMaster> patientMaster = patientMasterRepo.findByLabIdAndCreatedAtStartingWith(labId,today);
 		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
 		for(ReportMaster reportMaster:reportMasterList) {
+			List<ParameterDetails> list = new ArrayList<>();
+			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
+			Map<String, List<ParameterDetails>> tempPendigTest = new HashMap<>();
+			for(String test: reportMaster.getPendingTest1().keySet()) {
+				tempPendigTest.put(test, list);
+			}
+			reportMaster.setPendingTest(tempPendigTest);
+		}
+		if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+			Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
+			for(String test: reportMaster.getCompletedTest().keySet()) {
+				tempCompletedTest.put(test, list);
+			}
+			reportMaster.setPendingTest(tempCompletedTest);
+		}
+			
 			if(patientMap.containsKey(reportMaster.getPatientId())) {
 				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
 			}

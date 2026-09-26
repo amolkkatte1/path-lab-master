@@ -162,7 +162,7 @@ public class ReportService implements IReportService {
 		List<PatientMaster> patientMaster = patientMasterRepo.findByLabIdAndCreatedAtStartingWith(labId,today);
 		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
 		for(ReportMaster reportMaster:reportMasterList) {
-			if (reportMaster.getPendingTest() != null && !reportMaster.getPendingTest().isEmpty() && patientMap.containsKey(reportMaster.getPatientId())) {
+			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty() && patientMap.containsKey(reportMaster.getPatientId())) {
 				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));
 			}
 		}

@@ -244,20 +244,26 @@ public class ReportService implements IReportService {
 		Map<String, List<ParameterDetails>> testDataForUi = new HashMap<>();
 		for(String test :testList.keySet()) {
 			List<ParameterDetails> parameterList = new ArrayList<>();
-			TestMaster testStructureData = testMasterMap.get(test.substring(test.lastIndexOf("_") + 1));
+			TestMaster testStructureData = testMasterMap.get(Long.parseLong(test.substring(test.lastIndexOf("_") + 1)));
 			List<Long> parameterListOriginal = Utility.getIds(testStructureData.getParameterList());
 			for(Long parameterId : parameterListOriginal) {
 				ParameterMaster parameter = parameterMasterMap.get(parameterId);
+				String value = testList.get(test).get(String.valueOf(parameter.getSequence()));
+
+				String[] parts = value.split("\\|", -1);
+
+				String actualValue = parts[0];  // before |
+				boolean boldValue = parts[1].equals("1")?true:false;    // after |
 				parameterList .add(new ParameterDetails(
 			        parameter.getParameterName(),
-			        testList.get(test).get(parameter.getSequence()).split("\\|")[0],
+			        actualValue,
 			        parameter.getSequence(),
 			        parameter.getDataType(),
 			        parameter.getUnit(),
 			        parameter.getFormula(),
 			        parameter.getUpperRange(),
 			        parameter.getLowerRange(),
-			        testList.get(test).get(parameter.getSequence()).split("\\|")[1].equals(1)?true:false,
+			        boldValue,
 			        parameter.getIsNameBold(),
 			        parameter.getIsDescriptionParameter(),
 			        parameter.getPosition(),

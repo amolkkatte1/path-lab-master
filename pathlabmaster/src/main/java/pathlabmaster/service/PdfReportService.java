@@ -67,6 +67,8 @@ public class PdfReportService {
 	private QrCodeService qrCodeService;
 	@Autowired
 	private MdDoctorMasterRepository mdDoctorRepo;
+	@Autowired
+	IReportService reportService;
 	// ============================================================
 	// GENERATE PDF
 	// ============================================================
@@ -539,7 +541,8 @@ public class PdfReportService {
 		// =====================================================
 
 		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
-
+		reportDetails.setPendingTest(null);
+		reportDetails = reportService.convertReportMasterForUI(reportDetails);
 		if (reportDetails == null) {
 
 			throw new RuntimeException("Report not found for patient : " + patientId);

@@ -23,5 +23,7 @@ public interface IReportService {
 	Response getReportsListByLabId(Long labId);
 
 	Response getReportsByFilter(PatientFilterRequest patientFilterRequest);
+	
+	ReportMaster convertReportMasterForUI(ReportMaster reportMaster) throws JsonMappingException, JsonProcessingException;
 
 }

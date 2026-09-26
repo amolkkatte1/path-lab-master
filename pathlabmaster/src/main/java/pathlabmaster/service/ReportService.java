@@ -186,7 +186,8 @@ public class ReportService implements IReportService {
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
 	}
 
-	private ReportMaster convertReportMasterForUI(ReportMaster reportMaster)
+	@Override
+	public ReportMaster convertReportMasterForUI(ReportMaster reportMaster)
 			throws JsonMappingException, JsonProcessingException {
 
 		if (reportMaster != null) {

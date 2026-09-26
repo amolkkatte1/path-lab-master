@@ -1,24 +1,23 @@
 package pathlabmaster.service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pathlabmaster.dao.ParameterMasterRepository;
 import pathlabmaster.dao.PatientFilterRequest;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
+import pathlabmaster.dao.TestMasterRepository;
 import pathlabmaster.pojo.ParameterDetails;
 import pathlabmaster.pojo.ParameterMaster;
 import pathlabmaster.pojo.PatientMaster;
@@ -39,6 +38,8 @@ public class ReportService implements IReportService {
 	private ParameterMasterRepository parameterRepo;
 	@Autowired
 	private PatientMasterRepository patientMasterRepo;
+	@Autowired
+	private TestMasterRepository testRepo;
 	
 
 	@Override
@@ -51,47 +52,30 @@ public class ReportService implements IReportService {
 		reportMaster.setUpdatedBy(reportRegistrationRequest.getUserId());
 		reportMaster.setLabId(reportRegistrationRequest.getLabId());
 		reportMaster.setPatientId(reportRegistrationRequest.getPatientId());
-		Map<String, List<ParameterDetails>> pendingTest = new HashMap<>();
-		Map<String, List<ParameterDetails>> completedTest = new HashMap<>();
-		reportMaster.setCompletedTest(completedTest);
-		List<ParameterDetails> parameterList = new ArrayList<>();
-		Map<String, Map<String, Boolean>> reportStatus = new HashMap<>();
-		Map<String, Boolean> status = new HashMap<>();
-		status.put("isApproved", false);
-		status.put("isPrinted", false);
-		status.put("isSaved", false);
+		Map<String, Map<String, String>> pendingTest1 = new HashMap<>();
+		Map<String, Map<String, String>> completedTest1 = new HashMap<>();
+		reportMaster.setCompletedTest1(completedTest1);
+		Map<String, String>parameterList1= new HashMap<>();
+		Map<String, Map<String, Integer>> reportStatus1 = new HashMap<>();
+		Map<String, Integer> status1 = new HashMap<>();
+		status1.put("a", 0);
+		status1.put("p", 0);
+		status1.put("s", 0);
+		status1.put("i", 0);
 		Map<String, Integer> reportNames = new HashMap<>();
 		for (TestMaster test : reportRegistrationRequest.getTestList()) {
-			parameterList = new ArrayList<>();
-			status.put("isImageUploadEnable", Boolean.TRUE.equals(test.getIsImageUploadEnable()));
+			status1.put("i", Boolean.TRUE.equals(test.getIsImageUploadEnable())?1:0);
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			for(ParameterMaster parameter : parameterMasterList) {
-				parameterList.add(new ParameterDetails(
-				        parameter.getParameterName(),
-				        parameter.getValue(),
-				        parameter.getSequence(),
-				        parameter.getDataType(),
-				        parameter.getUnit(),
-				        parameter.getFormula(),
-				        parameter.getUpperRange(),
-				        parameter.getLowerRange(),
-				        parameter.getIsBold(),
-				        parameter.getIsNameBold(),
-				        parameter.getIsDescriptionParameter(),
-				        parameter.getPosition(),
-				        parameter.getParameterRange(),
-				        parameter.getIsValueRequired(),
-				        parameter.getLineCount(),
-				        parameter.getIsValueDiscription()
-				));
+				 parameterList1.put(String.valueOf(parameter.getSequence()),parameter.getValue() + "|" +(parameter.getIsBold() != null && parameter.getIsBold() ? "1" : "0"));
 			}
-			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
-			pendingTest.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);
+			reportStatus1.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status1);
+			pendingTest1.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList1);
 			reportNames.put(test.getTestName(),test.getTestCharges());
 		}
 		reportMaster.setReportNameList(reportNames);
-		reportMaster.setStatus(reportStatus);
-		reportMaster.setPendingTest(pendingTest);
+		reportMaster.setStatus1(reportStatus1);
+		reportMaster.setPendingTest1(pendingTest1);
 		ReportMaster savedReport = reportMasterRepo.save(reportMaster);
 		System.out.println(savedReport.getReportId()); 
 		return new Response(ResponseStatus.success, 1, "Report Registration successfully", savedReport);
@@ -101,9 +85,9 @@ public class ReportService implements IReportService {
 	@Override
 	public Response saveReportDetails(ReportMaster reportMaster) {
 		ReportMaster reportMasterExisting = reportMasterRepo.findByPatientIdAndLabId(reportMaster.getPatientId(),reportMaster.getLabId());
-		reportMasterExisting.setPendingTest(reportMaster.getPendingTest());
-		reportMasterExisting.setCompletedTest(reportMaster.getCompletedTest());
-		reportMasterExisting.setStatus(reportMaster.getStatus());
+		reportMasterExisting.setPendingTest1(Utility.convertReportDataForDB(reportMaster.getPendingTest()));
+		reportMasterExisting.setCompletedTest1(Utility.convertReportDataForDB(reportMaster.getCompletedTest()));
+		reportMasterExisting.setStatus1(convertStatusDataForDB(reportMaster.getStatus()));
 		reportMasterExisting.setUpdatedAt(Utility.getCurrentTime());
 		reportMasterExisting.setUpdatedBy(reportMaster.getUpdatedBy());
 		ReportMaster savedReport = reportMasterRepo.save(reportMasterExisting);
@@ -111,48 +95,46 @@ public class ReportService implements IReportService {
 		return new Response(ResponseStatus.success, 1, "Report Save successfully", savedReport);
 	}
 
+	
+
+	private Map<String, Map<String, Integer>> convertStatusDataForDB(Map<String, Map<String, Boolean>> status1) {
+		Map<String, Map<String, Integer>> statusUpdated = new HashMap<>();
+		for(String testName: status1.keySet()) {
+			Map<String, Integer> status = new HashMap<>();
+			status.put("a", status1.get(testName).get("isApproved")?1:0);
+			status.put("p", status1.get(testName).get("isPrinted")?1:0);
+			status.put("s", status1.get(testName).get("isSaved")?1:0);
+			status.put("i", status1.get(testName).get("isImageUploadEnable")?1:0);
+			statusUpdated.put(testName, status);
+		}
+		return statusUpdated;
+	}
+
 
 	@Override
 	public Response addReport(ReportRegistrationRequest reportRegistrationRequest)throws JsonMappingException, JsonProcessingException {
 		ReportMaster reportMaster = reportMasterRepo.findByPatientId(reportRegistrationRequest.getPatientId());
-		Map<String, List<ParameterDetails>> pendingReportsExisting = reportMaster.getPendingTest();
-		List<ParameterDetails> parameterList = new ArrayList<>();
-		Map<String, Map<String, Boolean>> reportStatus = reportMaster.getStatus();
-		Map<String, Boolean> status = new HashMap<>();
-		status.put("isApproved", false);
-		status.put("isPrinted", false);
-		status.put("isSaved", false);
+		Map<String, Map<String, String>> pendingReportsExisting1 = reportMaster.getPendingTest1();
+		Map<String, Integer> status1 = new HashMap<>();
+		Map<String, String>parameterList1= new HashMap<>();
+		Map<String, Map<String, Integer>> reportStatus1 = reportMaster.getStatus1();
+		status1.put("a", 0);
+		status1.put("p", 0);
+		status1.put("s", 0);
 		Map<String,Integer> reportNames = new HashMap<>();
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
-			parameterList = new ArrayList<>();
+			status1.put("i", Boolean.TRUE.equals(test.getIsImageUploadEnable())?1:0);
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			for(ParameterMaster parameter : parameterMasterList) {
-				parameterList.add(new ParameterDetails(
-				        parameter.getParameterName(),
-				        parameter.getValue(),
-				        parameter.getSequence(),
-				        parameter.getDataType(),
-				        parameter.getUnit(),
-				        parameter.getFormula(),
-				        parameter.getUpperRange(),
-				        parameter.getLowerRange(),
-				        parameter.getIsBold(),
-				        parameter.getIsNameBold(),
-				        parameter.getIsDescriptionParameter(),
-				        parameter.getPosition(),
-				        parameter.getParameterRange(),
-				        parameter.getIsValueRequired(),
-				        parameter.getLineCount(),
-				        parameter.getIsValueDiscription()
-				));
+				 parameterList1.put(String.valueOf(parameter.getSequence()),parameter.getValue() + "|" +(parameter.getIsBold() != null && parameter.getIsBold() ? "1" : "0"));
 			}
-			reportStatus.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status);
-			pendingReportsExisting.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList);
+			reportStatus1.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status1);
+			pendingReportsExisting1.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList1);
 			reportNames.put(test.getTestName(),test.getTestCharges());
 		}
 		reportMaster.setReportNameList(reportNames);
-		reportMaster.setStatus(reportStatus);
-		reportMaster.setPendingTest(pendingReportsExisting);
+		reportMaster.setStatus1(reportStatus1);
+		reportMaster.setPendingTest1(pendingReportsExisting1);
 		ReportMaster savedReport = reportMasterRepo.save(reportMaster);
 		System.out.println(savedReport.getReportId()); 
 		return new Response(ResponseStatus.success, 1, "Add Repors successfully", savedReport);
@@ -160,8 +142,8 @@ public class ReportService implements IReportService {
 
 
 	@Override
-	public Response getPendingReportsByPatientIdAndLabId(Long patientId, Long labId) {
-		ReportMaster reportMaster = reportMasterRepo.findByPatientIdAndLabId(patientId, labId);
+	public Response getPendingReportsByPatientIdAndLabId(Long patientId, Long labId) throws JsonMappingException, JsonProcessingException {
+		ReportMaster reportMaster = convertReportMasterForUI(reportMasterRepo.findByPatientIdAndLabId(patientId, labId));
 		PatientMaster patientMaster = patientMasterRepo.findByPatientIdAndLabId(patientId, labId);
 		if (patientMaster != null && reportMaster != null) {
 			ReportMasterResponse reportMasterResponse = new ReportMasterResponse(patientMaster, reportMaster);
@@ -187,7 +169,95 @@ public class ReportService implements IReportService {
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
 	}
 
+	private ReportMaster convertReportMasterForUI(ReportMaster reportMaster) throws JsonMappingException, JsonProcessingException {
+		if (reportMaster != null) {
+			List<Long> testIds = Stream.concat(
+					reportMaster.getPendingTest1() != null ? reportMaster.getPendingTest1().keySet().stream()
+							: Stream.empty(),
 
+					reportMaster.getCompletedTest1() != null ? reportMaster.getCompletedTest1().keySet().stream()
+							: Stream.empty())
+					.map(key -> Long.valueOf(key.substring(key.lastIndexOf("_") + 1))).toList();
+			List<TestMaster> testMasterList = testRepo.findByTestIdIn(testIds);
+			Map<Long, TestMaster> testMasterMap = testMasterList.stream()
+					.collect(Collectors.toMap(TestMaster::getTestId, testMaster -> testMaster));
+			List<Long> parameterIds = new ArrayList<>();
+
+			for (TestMaster test : testMasterList) {
+
+				if (test.getParameterList() != null && !test.getParameterList().isBlank()) {
+
+					parameterIds.addAll(Utility.getIds(test.getParameterList()));
+				}
+			}
+			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(parameterIds);
+			Map<Long, ParameterMaster> parameterMasterMap = parameterMasterList.stream()
+					.collect(Collectors.toMap(ParameterMaster::getParameterId, parameter -> parameter));
+			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+				reportMaster
+						.setPendingTest(convertReportMasterDataForUI(reportMaster.getCompletedTest1(), testMasterMap,parameterMasterMap));
+			}
+			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+				reportMaster.setCompletedTest(
+						convertReportMasterDataForUI(reportMaster.getCompletedTest1(), testMasterMap,parameterMasterMap));
+			}
+			if (reportMaster.getStatus1() != null && !reportMaster.getStatus1().isEmpty()) {
+				reportMaster.setStatus(convertStatusDataForUI(reportMaster.getStatus1()));
+			}
+			
+		}
+		return reportMaster;
+	}
+
+	private Map<String, Map<String, Boolean>> convertStatusDataForUI(Map<String, Map<String, Integer>> status1) {
+		 Map<String, Map<String, Boolean>> updatedStatusData = new HashMap<>();
+		for(String testName :status1.keySet()) {
+			Map<String, Boolean> status = new HashMap<>();
+			status.put("isApproved", status1.get(testName).get("a")==1?true:false);
+			status.put("isPrinted", status1.get(testName).get("p")==1?true:false);
+			status.put("isSaved", status1.get(testName).get("s")==1?true:false);
+			status.put("isImageUploadEnable", status1.get(testName).get("i")==1?true:false);
+			updatedStatusData.put(testName, status);
+		}
+		return updatedStatusData;
+	}
+
+
+	private Map<String, List<ParameterDetails>> convertReportMasterDataForUI(Map<String, Map<String, String>> testList, Map<Long, TestMaster> testMasterMap, Map<Long, ParameterMaster> parameterMasterMap) throws JsonMappingException, JsonProcessingException {
+		Map<String, List<ParameterDetails>> testDataForUi = new HashMap<>();
+		for(String test :testList.keySet()) {
+			List<ParameterDetails> parameterList = new ArrayList<>();
+			TestMaster testStructureData = testMasterMap.get(test.substring(test.lastIndexOf("_") + 1));
+			List<Long> parameterListOriginal = Utility.getIds(testStructureData.getParameterList());
+			for(Long parameterId : parameterListOriginal) {
+				ParameterMaster parameter = parameterMasterMap.get(parameterId);
+				parameterList .add(new ParameterDetails(
+			        parameter.getParameterName(),
+			        testList.get(test).get(parameter.getSequence()).split("\\|")[0],
+			        parameter.getSequence(),
+			        parameter.getDataType(),
+			        parameter.getUnit(),
+			        parameter.getFormula(),
+			        parameter.getUpperRange(),
+			        parameter.getLowerRange(),
+			        testList.get(test).get(parameter.getSequence()).split("\\|")[1].equals(1)?true:false,
+			        parameter.getIsNameBold(),
+			        parameter.getIsDescriptionParameter(),
+			        parameter.getPosition(),
+			        parameter.getParameterRange(),
+			        parameter.getIsValueRequired(),
+			        parameter.getLineCount(),
+			        parameter.getIsValueDiscription()
+			));
+			}
+			testDataForUi.put(test, parameterList);
+		}
+			
+		return testDataForUi;
+	}
+
+
+//currently not using
 	@Override
 	public Response getReportsListByLabId(Long labId) {
 		String today = Utility.getTodayDate();

@@ -1,7 +1,6 @@
 package pathlabmaster.service;
 
 import pathlabmaster.pojo.DoctorMaster;
-import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.utility.Response;
 
 public interface IDoctorService {

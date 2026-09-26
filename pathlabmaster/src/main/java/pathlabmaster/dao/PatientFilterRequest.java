@@ -1,8 +1,5 @@
 package pathlabmaster.dao;
 
-
-import java.time.LocalDate;
-
 public class PatientFilterRequest {
 
     private String fromDate;

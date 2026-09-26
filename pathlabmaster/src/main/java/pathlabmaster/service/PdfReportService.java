@@ -29,13 +29,13 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
+
 import pathlabmaster.dao.BillMasterRepository;
 import pathlabmaster.dao.ClientConfigRepository;
 import pathlabmaster.dao.DoctorMasterRepository;
 import pathlabmaster.dao.MdDoctorMasterRepository;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
-
 import pathlabmaster.pojo.BillMaster;
 import pathlabmaster.pojo.ClientConfig;
 import pathlabmaster.pojo.DoctorMaster;
@@ -952,7 +952,7 @@ public class PdfReportService {
 
 		addPatientCell(patientTable,
 				": " + safe(patientDetails.getGender()) + " / " + safe(patientDetails.getYear()) + "Y", boldFont,
-				Element.ALIGN_RIGHT);
+				Element.ALIGN_LEFT);
 
 		addPatientCell(patientTable, "Name", boldFont, Element.ALIGN_LEFT);
 
@@ -1607,157 +1607,127 @@ public class PdfReportService {
 // DRAW MD SIGNATURE
 // =====================================================
 
-		
 		private void drawMdSignature(PdfContentByte canvas, float mdX, float contentY) {
 
-		    if (mdSign == null || mdSign.length == 0 || mdDoctorDetails == null) {
-		        return;
-		    }
+			if (mdSign == null || mdSign.length == 0 || mdDoctorDetails == null) {
+				return;
+			}
 
-		    try {
+			try {
 
-		        // =================================================
-		        // SIGNATURE
-		        // =================================================
+				// =================================================
+				// SIGNATURE
+				// =================================================
 
-		        float signWidth = 100f;
-		        float signHeight = 40f;
+				float signWidth = 100f;
+				float signHeight = 40f;
 
-		        Image signImage = Image.getInstance(mdSign);
+				Image signImage = Image.getInstance(mdSign);
 
-		        signImage.scaleAbsolute(signWidth, signHeight);
+				signImage.scaleAbsolute(signWidth, signHeight);
 
-		        float signY = contentY - signHeight;
+				float signY = contentY - signHeight;
 
-		        // =================================================
-		        // SHIFT FULL MD BLOCK FROM BORDER
-		        // =================================================
+				// =================================================
+				// SHIFT FULL MD BLOCK FROM BORDER
+				// =================================================
 
-		        float shift = 20f;
+				float shift = 20f;
 
-		        if (mdX < canvas.getPdfWriter().getPageSize().getWidth() / 2) {
+				if (mdX < canvas.getPdfWriter().getPageSize().getWidth() / 2) {
 
-		            // LEFT SIDE
-		            mdX = mdX + shift;
+					// LEFT SIDE
+					mdX = mdX + shift;
 
-		        } else {
+				} else {
 
-		            // RIGHT SIDE
-		            mdX = mdX - shift;
-		        }
+					// RIGHT SIDE
+					mdX = mdX - shift;
+				}
 
-		        // =================================================
-		        // ADD SIGNATURE
-		        // =================================================
+				// =================================================
+				// ADD SIGNATURE
+				// =================================================
 
-		        signImage.setAbsolutePosition(
-		                mdX,
-		                signY - 60
-		        );
+				signImage.setAbsolutePosition(mdX, signY - 60);
 
-		        canvas.addImage(signImage);
+				canvas.addImage(signImage);
 
-		        // =================================================
-		        // CENTER OF MD BLOCK
-		        // =================================================
+				// =================================================
+				// CENTER OF MD BLOCK
+				// =================================================
 
-		        float mdCenterX = mdX + (signWidth / 2);
+				float mdCenterX = mdX + (signWidth / 2);
 
-		        // =================================================
-		        // DOCTOR NAME
-		        // =================================================
+				// =================================================
+				// DOCTOR NAME
+				// =================================================
 
-		        String doctorName = safe(mdDoctorDetails.getDoctorName());
+				String doctorName = safe(mdDoctorDetails.getDoctorName());
 
-		        Font doctorNameFont =
-		                new Font(Font.HELVETICA, 11, Font.BOLD);
+				Font doctorNameFont = new Font(Font.HELVETICA, 11, Font.BOLD);
 
-		        float doctorNameY = signY - 10;
+				float doctorNameY = signY - 10;
 
-		        ColumnText.showTextAligned(
-		                canvas,
-		                Element.ALIGN_CENTER,
-		                new Phrase(doctorName, doctorNameFont),
-		                mdCenterX,
-		                doctorNameY - 60,
-		                0
-		        );
+				ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase(doctorName, doctorNameFont),
+						mdCenterX, doctorNameY - 60, 0);
 
-		        // =================================================
-		        // QUALIFICATION
-		        // =================================================
+				// =================================================
+				// QUALIFICATION
+				// =================================================
 
-		        String qualification =
-		                safe(mdDoctorDetails.getEducationQulification());
+				String qualification = safe(mdDoctorDetails.getEducationQulification());
 
-		        Font qualificationFont =
-		                new Font(Font.HELVETICA, 11, Font.BOLD);
+				Font qualificationFont = new Font(Font.HELVETICA, 11, Font.BOLD);
 
-		        // =================================================
-		        // MULTI-LINE QUALIFICATION
-		        // =================================================
+				// =================================================
+				// MULTI-LINE QUALIFICATION
+				// =================================================
 
-		        if (qualification != null && !qualification.trim().isEmpty()) {
+				if (qualification != null && !qualification.trim().isEmpty()) {
 
-		            ColumnText qualificationColumn =
-		                    new ColumnText(canvas);
+					ColumnText qualificationColumn = new ColumnText(canvas);
 
-		            qualification =
-		                    qualification.replace("\r\n", "\n")
-		                                 .replace("\r", "\n");
+					qualification = qualification.replace("\r\n", "\n").replace("\r", "\n");
 
-		            Paragraph qualificationParagraph =
-		                    new Paragraph();
+					Paragraph qualificationParagraph = new Paragraph();
 
-		            qualificationParagraph.setFont(qualificationFont);
-		            qualificationParagraph.setAlignment(Element.ALIGN_CENTER);
-		            qualificationParagraph.setLeading(13f);
+					qualificationParagraph.setFont(qualificationFont);
+					qualificationParagraph.setAlignment(Element.ALIGN_CENTER);
+					qualificationParagraph.setLeading(13f);
 
-		            String[] qualificationLines =
-		                    qualification.split("\n");
+					String[] qualificationLines = qualification.split("\n");
 
-		            for (String line : qualificationLines) {
+					for (String line : qualificationLines) {
 
-		                Paragraph lineParagraph =
-		                        new Paragraph(line.trim(), qualificationFont);
+						Paragraph lineParagraph = new Paragraph(line.trim(), qualificationFont);
 
-		                lineParagraph.setAlignment(Element.ALIGN_CENTER);
-		                lineParagraph.setLeading(13f);
+						lineParagraph.setAlignment(Element.ALIGN_CENTER);
+						lineParagraph.setLeading(13f);
 
-		                qualificationParagraph.add(lineParagraph);
-		            }
+						qualificationParagraph.add(lineParagraph);
+					}
 
-		            // =================================================
-		            // QUALIFICATION POSITION
-		            // =================================================
+					// =================================================
+					// QUALIFICATION POSITION
+					// =================================================
 
-		            float qualificationTop = doctorNameY - 72;
-		            float qualificationBottom = qualificationTop - 35;
+					float qualificationTop = doctorNameY - 72;
+					float qualificationBottom = qualificationTop - 35;
 
-		            qualificationColumn.setSimpleColumn(
-		                    mdX - 20,
-		                    qualificationBottom,
-		                    mdX + signWidth + 20,
-		                    qualificationTop + 12
-		            );
+					qualificationColumn.setSimpleColumn(mdX - 20, qualificationBottom, mdX + signWidth + 20,
+							qualificationTop + 12);
 
-		            qualificationColumn.addElement(
-		                    qualificationParagraph
-		            );
+					qualificationColumn.addElement(qualificationParagraph);
 
-		            qualificationColumn.go();
-		        }
+					qualificationColumn.go();
+				}
 
-		    } catch (Exception e) {
+			} catch (Exception e) {
 
-		        throw new RuntimeException(
-		                "Error while adding MD signature",
-		                e
-		        );
-		    }
+				throw new RuntimeException("Error while adding MD signature", e);
+			}
 		}
-		
-
 
 // =====================================================
 // DRAW QR CODE

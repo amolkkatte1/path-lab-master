@@ -10,11 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import pathlabmaster.pojo.TestMaster;
-import pathlabmaster.pojo.UserMaster;
+import pathlabmaster.service.ITestService;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.Utility;
-import pathlabmaster.service.ITestService;
-import pathlabmaster.service.TestService;
 
 @RestController
 @RequestMapping("/test")

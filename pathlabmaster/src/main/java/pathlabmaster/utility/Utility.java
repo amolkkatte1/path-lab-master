@@ -4,12 +4,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import pathlabmaster.pojo.ParameterDetails;
 
 public class Utility {
 
@@ -155,5 +159,18 @@ public class Utility {
 	public static int getPreviousMonthNumber() {
 
 		return LocalDate.now(INDIA_ZONE).minusMonths(1).getMonthValue();
+	}
+	
+	public static Map<String, Map<String, String>> convertReportDataForDB(Map<String, List<ParameterDetails>> testList){
+		 Map<String, Map<String, String>> updatedTestData = new HashMap<>();
+		 Map<String, String> testParameter = new HashMap<>();
+		 for(String test : testList.keySet()) {
+			 testParameter = new HashMap<>();
+			 for(ParameterDetails parameter: testList.get(test)) {
+				 testParameter.put(String.valueOf(parameter.getSequence()),  parameter.getValue()+"|"+ parameter.getIsBold() != null&&parameter.getIsBold()?"1":"0");
+			 }
+			 updatedTestData.put(test, testParameter);
+		 }
+		return updatedTestData;
 	}
 }

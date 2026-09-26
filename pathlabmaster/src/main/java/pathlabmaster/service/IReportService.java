@@ -16,7 +16,7 @@ public interface IReportService {
 
 	Response addReport(ReportRegistrationRequest reportRegistrationRequest) throws JsonMappingException, JsonProcessingException;
 
-	Response getPendingReportsByPatientIdAndLabId(Long patientId, Long labId);
+	Response getPendingReportsByPatientIdAndLabId(Long patientId, Long labId) throws JsonMappingException, JsonProcessingException;
 
 	Response getPendingReportsByLabId(Long labId);
 

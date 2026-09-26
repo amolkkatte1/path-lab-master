@@ -1,0 +1,93 @@
+private ReportMaster convertReportMasterForUI(ReportMaster reportMaster) throws JsonMappingException, JsonProcessingException {
+		if (reportMaster != null) {
+			List<Long> testIds = Stream.concat(
+					reportMaster.getPendingTest1() != null ? reportMaster.getPendingTest1().keySet().stream()
+							: Stream.empty(),
+
+					reportMaster.getCompletedTest1() != null ? reportMaster.getCompletedTest1().keySet().stream()
+							: Stream.empty())
+					.map(key -> Long.valueOf(key.substring(key.lastIndexOf("_") + 1))).toList();
+			List<TestMaster> testMasterList = testRepo.findByTestIdIn(testIds);
+			Map<Long, TestMaster> testMasterMap = testMasterList.stream()
+					.collect(Collectors.toMap(TestMaster::getTestId, testMaster -> testMaster));
+			List<Long> parameterIds = new ArrayList<>();
+
+			for (TestMaster test : testMasterList) {
+
+				if (test.getParameterList() != null && !test.getParameterList().isBlank()) {
+
+					parameterIds.addAll(Utility.getIds(test.getParameterList()));
+				}
+			}
+			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(parameterIds);
+			Map<Long, ParameterMaster> parameterMasterMap = parameterMasterList.stream()
+					.collect(Collectors.toMap(ParameterMaster::getParameterId, parameter -> parameter));
+			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
+				reportMaster
+						.setPendingTest(convertReportMasterDataForUI(reportMaster.getPendingTest1(), testMasterMap,parameterMasterMap));
+			}
+			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+				reportMaster.setCompletedTest(
+						convertReportMasterDataForUI(reportMaster.getCompletedTest1(), testMasterMap,parameterMasterMap));
+			}
+			if (reportMaster.getStatus1() != null && !reportMaster.getStatus1().isEmpty()) {
+				reportMaster.setStatus(convertStatusDataForUI(reportMaster.getStatus1()));
+			}
+			
+		}
+		return reportMaster;
+	}
+
+	private Map<String, Map<String, Boolean>> convertStatusDataForUI(Map<String, Map<String, Integer>> status1) {
+		 Map<String, Map<String, Boolean>> updatedStatusData = new HashMap<>();
+		for(String testName :status1.keySet()) {
+			Map<String, Boolean> status = new HashMap<>();
+			status.put("isApproved", status1.get(testName).get("a")==1?true:false);
+			status.put("isPrinted", status1.get(testName).get("p")==1?true:false);
+			status.put("isSaved", status1.get(testName).get("s")==1?true:false);
+			status.put("isImageUploadEnable", status1.get(testName).get("i")==1?true:false);
+			updatedStatusData.put(testName, status);
+		}
+		return updatedStatusData;
+	}
+
+
+	private Map<String, List<ParameterDetails>> convertReportMasterDataForUI(Map<String, Map<String, String>> testList, Map<Long, TestMaster> testMasterMap, Map<Long, ParameterMaster> parameterMasterMap) throws JsonMappingException, JsonProcessingException {
+		Map<String, List<ParameterDetails>> testDataForUi = new HashMap<>();
+		for(String test :testList.keySet()) {
+			List<ParameterDetails> parameterList = new ArrayList<>();
+			TestMaster testStructureData = testMasterMap.get(Long.parseLong(test.substring(test.lastIndexOf("_") + 1)));
+			List<Long> parameterListOriginal = Utility.getIds(testStructureData.getParameterList());
+			for(Long parameterId : parameterListOriginal) {
+				ParameterMaster parameter = parameterMasterMap.get(parameterId);
+				String value = testList.get(test).get(String.valueOf(parameter.getSequence()));
+
+				String[] parts = value.split("\\|", -1);
+
+				String actualValue = parts[0]== null || parts[0].isBlank()?parameter.getValue():null;
+				
+				boolean boldValue = parts[1].equals("1")?true:false;    // after |
+				parameterList .add(new ParameterDetails(
+			        parameter.getParameterName(),
+			        actualValue,
+			        parameter.getSequence(),
+			        parameter.getDataType(),
+			        parameter.getUnit(),
+			        parameter.getFormula(),
+			        parameter.getUpperRange(),
+			        parameter.getLowerRange(),
+			        boldValue,
+			        parameter.getIsNameBold(),
+			        parameter.getIsDescriptionParameter(),
+			        parameter.getPosition(),
+			        parameter.getParameterRange(),
+			        parameter.getIsValueRequired(),
+			        parameter.getLineCount(),
+			        parameter.getIsValueDiscription()
+			));
+			}
+			testDataForUi.put(test, parameterList);
+		}
+			
+		return testDataForUi;
+	}

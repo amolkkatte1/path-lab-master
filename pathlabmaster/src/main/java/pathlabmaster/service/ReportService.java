@@ -186,97 +186,168 @@ public class ReportService implements IReportService {
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
 	}
 
-	private ReportMaster convertReportMasterForUI(ReportMaster reportMaster) throws JsonMappingException, JsonProcessingException {
-		if (reportMaster != null) {
-			List<Long> testIds = Stream.concat(
-					reportMaster.getPendingTest1() != null ? reportMaster.getPendingTest1().keySet().stream()
-							: Stream.empty(),
+	private ReportMaster convertReportMasterForUI(ReportMaster reportMaster)
+			throws JsonMappingException, JsonProcessingException {
 
-					reportMaster.getCompletedTest1() != null ? reportMaster.getCompletedTest1().keySet().stream()
-							: Stream.empty())
-					.map(key -> Long.valueOf(key.substring(key.lastIndexOf("_") + 1))).toList();
+		if (reportMaster != null) {
+
+			// =========================================================
+			// Collect Test IDs
+			// =========================================================
+			List<Long> testIds = new ArrayList<>();
+
+			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
+
+				for (String key : reportMaster.getPendingTest1().keySet()) {
+					testIds.add(Long.valueOf(key.substring(key.lastIndexOf("_") + 1)));
+				}
+			}
+
+			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+
+				for (String key : reportMaster.getCompletedTest1().keySet()) {
+					testIds.add(Long.valueOf(key.substring(key.lastIndexOf("_") + 1)));
+				}
+			}
+
+			// =========================================================
+			// Fetch Test Master Data
+			// =========================================================
 			List<TestMaster> testMasterList = testRepo.findByTestIdIn(testIds);
-			Map<Long, TestMaster> testMasterMap = testMasterList.stream()
-					.collect(Collectors.toMap(TestMaster::getTestId, testMaster -> testMaster));
+
+			Map<Long, TestMaster> testMasterMap = new HashMap<>(Math.max(16, testMasterList.size() * 2));
+
 			List<Long> parameterIds = new ArrayList<>();
 
 			for (TestMaster test : testMasterList) {
 
-				if (test.getParameterList() != null && !test.getParameterList().isBlank()) {
+				testMasterMap.put(test.getTestId(), test);
 
-					parameterIds.addAll(Utility.getIds(test.getParameterList()));
+				String parameterList = test.getParameterList();
+
+				if (parameterList != null && !parameterList.isBlank()) {
+					parameterIds.addAll(Utility.getIds(parameterList));
 				}
 			}
+
+			// =========================================================
+			// Fetch Parameter Master Data
+			// =========================================================
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(parameterIds);
-			Map<Long, ParameterMaster> parameterMasterMap = parameterMasterList.stream()
-					.collect(Collectors.toMap(ParameterMaster::getParameterId, parameter -> parameter));
+
+			Map<Long, ParameterMaster> parameterMasterMap = new HashMap<>(Math.max(16, parameterMasterList.size() * 2));
+
+			for (ParameterMaster parameter : parameterMasterList) {
+				parameterMasterMap.put(parameter.getParameterId(), parameter);
+			}
+
+			// =========================================================
+			// Convert Pending Tests
+			// =========================================================
 			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
-				reportMaster
-						.setPendingTest(convertReportMasterDataForUI(reportMaster.getPendingTest1(), testMasterMap,parameterMasterMap));
+
+				reportMaster.setPendingTest(convertReportMasterDataForUI(reportMaster.getPendingTest1(), testMasterMap,
+						parameterMasterMap));
 			}
+
+			// =========================================================
+			// Convert Completed Tests
+			// =========================================================
 			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
-				reportMaster.setCompletedTest(
-						convertReportMasterDataForUI(reportMaster.getCompletedTest1(), testMasterMap,parameterMasterMap));
+
+				reportMaster.setCompletedTest(convertReportMasterDataForUI(reportMaster.getCompletedTest1(),
+						testMasterMap, parameterMasterMap));
 			}
+
+			// =========================================================
+			// Convert Status
+			// =========================================================
 			if (reportMaster.getStatus1() != null && !reportMaster.getStatus1().isEmpty()) {
+
 				reportMaster.setStatus(convertStatusDataForUI(reportMaster.getStatus1()));
 			}
-			
 		}
+
 		return reportMaster;
 	}
 
 	private Map<String, Map<String, Boolean>> convertStatusDataForUI(Map<String, Map<String, Integer>> status1) {
-		 Map<String, Map<String, Boolean>> updatedStatusData = new HashMap<>();
-		for(String testName :status1.keySet()) {
-			Map<String, Boolean> status = new HashMap<>();
-			status.put("isApproved", status1.get(testName).get("a")==1?true:false);
-			status.put("isPrinted", status1.get(testName).get("p")==1?true:false);
-			status.put("isSaved", status1.get(testName).get("s")==1?true:false);
-			status.put("isImageUploadEnable", status1.get(testName).get("i")==1?true:false);
+
+		Map<String, Map<String, Boolean>> updatedStatusData = new HashMap<>(Math.max(16, status1.size() * 2));
+
+		for (Map.Entry<String, Map<String, Integer>> entry : status1.entrySet()) {
+
+			String testName = entry.getKey();
+			Map<String, Integer> statusData = entry.getValue();
+
+			Map<String, Boolean> status = new HashMap<>(8);
+
+			status.put("isApproved", statusData.get("a") == 1);
+
+			status.put("isPrinted", statusData.get("p") == 1);
+
+			status.put("isSaved", statusData.get("s") == 1);
+
+			status.put("isImageUploadEnable", statusData.get("i") == 1);
+
 			updatedStatusData.put(testName, status);
 		}
+
 		return updatedStatusData;
 	}
 
+	private Map<String, List<ParameterDetails>> convertReportMasterDataForUI(Map<String, Map<String, String>> testList,
+			Map<Long, TestMaster> testMasterMap, Map<Long, ParameterMaster> parameterMasterMap)
+			throws JsonMappingException, JsonProcessingException {
 
-	private Map<String, List<ParameterDetails>> convertReportMasterDataForUI(Map<String, Map<String, String>> testList, Map<Long, TestMaster> testMasterMap, Map<Long, ParameterMaster> parameterMasterMap) throws JsonMappingException, JsonProcessingException {
-		Map<String, List<ParameterDetails>> testDataForUi = new HashMap<>();
-		for(String test :testList.keySet()) {
-			List<ParameterDetails> parameterList = new ArrayList<>();
-			TestMaster testStructureData = testMasterMap.get(Long.parseLong(test.substring(test.lastIndexOf("_") + 1)));
+		Map<String, List<ParameterDetails>> testDataForUi = new HashMap<>(Math.max(16, testList.size() * 2));
+
+		for (Map.Entry<String, Map<String, String>> testEntry : testList.entrySet()) {
+
+			String test = testEntry.getKey();
+			Map<String, String> testParameterData = testEntry.getValue();
+
+			// =========================================================
+			// Get Test Master
+			// =========================================================
+			int lastUnderscoreIndex = test.lastIndexOf("_");
+
+			Long testId = Long.parseLong(test.substring(lastUnderscoreIndex + 1));
+
+			TestMaster testStructureData = testMasterMap.get(testId);
+
+			// =========================================================
+			// Get Parameter IDs
+			// =========================================================
 			List<Long> parameterListOriginal = Utility.getIds(testStructureData.getParameterList());
-			for(Long parameterId : parameterListOriginal) {
+
+			List<ParameterDetails> parameterList = new ArrayList<>(parameterListOriginal.size());
+
+			// =========================================================
+			// Convert Parameters
+			// =========================================================
+			for (Long parameterId : parameterListOriginal) {
+
 				ParameterMaster parameter = parameterMasterMap.get(parameterId);
-				String value = testList.get(test).get(String.valueOf(parameter.getSequence()));
+
+				String value = testParameterData.get(String.valueOf(parameter.getSequence()));
 
 				String[] parts = value.split("\\|", -1);
 
-				String actualValue = parts[0]== null || parts[0].isBlank()?parameter.getValue():null;
-				
-				boolean boldValue = parts[1].equals("1")?true:false;    // after |
-				parameterList .add(new ParameterDetails(
-			        parameter.getParameterName(),
-			        actualValue,
-			        parameter.getSequence(),
-			        parameter.getDataType(),
-			        parameter.getUnit(),
-			        parameter.getFormula(),
-			        parameter.getUpperRange(),
-			        parameter.getLowerRange(),
-			        boldValue,
-			        parameter.getIsNameBold(),
-			        parameter.getIsDescriptionParameter(),
-			        parameter.getPosition(),
-			        parameter.getParameterRange(),
-			        parameter.getIsValueRequired(),
-			        parameter.getLineCount(),
-			        parameter.getIsValueDiscription()
-			));
+				String actualValue = parts[0] == null || parts[0].isBlank() ? parameter.getValue() : null;
+
+				boolean boldValue = parts[1].equals("1");
+
+				parameterList.add(new ParameterDetails(parameter.getParameterName(), actualValue,
+						parameter.getSequence(), parameter.getDataType(), parameter.getUnit(), parameter.getFormula(),
+						parameter.getUpperRange(), parameter.getLowerRange(), boldValue, parameter.getIsNameBold(),
+						parameter.getIsDescriptionParameter(), parameter.getPosition(), parameter.getParameterRange(),
+						parameter.getIsValueRequired(), parameter.getLineCount(), parameter.getIsValueDiscription()));
 			}
+
 			testDataForUi.put(test, parameterList);
 		}
-			
+
 		return testDataForUi;
 	}
 

@@ -66,6 +66,7 @@ public class ReportService implements IReportService {
 		Map<String, Integer> reportNames = new HashMap<>();
 		for (TestMaster test : reportRegistrationRequest.getTestList()) {
 			status1.put("i", Boolean.TRUE.equals(test.getIsImageUploadEnable())?1:0);
+			parameterList1= new HashMap<>();
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			for(ParameterMaster parameter : parameterMasterList) {
 				String value = (parameter.getValue() + "|" +(parameter.getIsBold() != null && parameter.getIsBold() ? "1" : "0"));

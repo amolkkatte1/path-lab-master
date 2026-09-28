@@ -1424,24 +1424,11 @@ public class PdfReportService {
 
 	private String getReferenceRange(ParameterDetails parameter) {
 
-		if (parameter.getLowerRange() != null && parameter.getUpperRange() != null && parameter.getLowerRange() != null && parameter.getUpperRange() != null) {
-
-			return parameter.getLowerRange().stripTrailingZeros().toPlainString() + " "+parameter.getParameterRange()+" "
-					+ parameter.getUpperRange().stripTrailingZeros().toPlainString();
-		}
-		
-		if (parameter.getLowerRange() != null && parameter.getUpperRange() != null) {
-
-			return parameter.getLowerRange().stripTrailingZeros().toPlainString() + " - "
-					+ parameter.getUpperRange().stripTrailingZeros().toPlainString();
-		}
-
-		if (parameter.getParameterRange() != null && !parameter.getParameterRange().isEmpty()) {
-
-			return parameter.getParameterRange();
-		}
-
-		return "";
+		return parameter.getLowerRange().stripTrailingZeros().toPlainString() + " "
+				+ ((parameter.getParameterRange() != null && !parameter.getParameterRange().isEmpty())
+						? parameter.getParameterRange()
+						: "-")
+				+ " " + parameter.getUpperRange().stripTrailingZeros().toPlainString();
 	}
 
 	// ============================================================

@@ -1424,7 +1424,7 @@ public class PdfReportService {
 
 	private String getReferenceRange(ParameterDetails parameter) {
 
-		if (parameter.getLowerRange() != null && parameter.getUpperRange() != null && parameter.getLowerRange() != null && parameter.getUpperRange() != null) {
+		if (parameter.getLowerRange() != null && parameter.getUpperRange() != null && parameter.getParameterRange() != null && !parameter.getParameterRange().isEmpty()) {
 
 			return parameter.getLowerRange().stripTrailingZeros().toPlainString() + " "+parameter.getParameterRange()+" "
 					+ parameter.getUpperRange().stripTrailingZeros().toPlainString();

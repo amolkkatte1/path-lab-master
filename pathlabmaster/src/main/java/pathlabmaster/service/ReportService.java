@@ -87,7 +87,7 @@ public class ReportService implements IReportService {
 		ReportMaster reportMasterExisting = reportMasterRepo.findByPatientIdAndLabId(reportMaster.getPatientId(),reportMaster.getLabId());
 		reportMasterExisting.setPendingTest1(Utility.convertReportDataForDB(reportMaster.getPendingTest()));
 		reportMasterExisting.setCompletedTest1(Utility.convertReportDataForDB(reportMaster.getCompletedTest()));
-		reportMasterExisting.setStatus1(convertStatusDataForDB(reportMaster.getStatus()));
+		reportMasterExisting.setStatus1(Utility.convertStatusDataForDB(reportMaster.getStatus()));
 		reportMasterExisting.setUpdatedAt(Utility.getCurrentTime());
 		reportMasterExisting.setUpdatedBy(reportMaster.getUpdatedBy());
 		ReportMaster savedReport = reportMasterRepo.save(reportMasterExisting);
@@ -96,20 +96,6 @@ public class ReportService implements IReportService {
 	}
 
 	
-
-	private Map<String, Map<String, Integer>> convertStatusDataForDB(Map<String, Map<String, Boolean>> status1) {
-		Map<String, Map<String, Integer>> statusUpdated = new HashMap<>();
-		for(String testName: status1.keySet()) {
-			Map<String, Integer> status = new HashMap<>();
-			status.put("a", status1.get(testName).get("isApproved")?1:0);
-			status.put("p", status1.get(testName).get("isPrinted")?1:0);
-			status.put("s", status1.get(testName).get("isSaved")?1:0);
-			status.put("i", status1.get(testName).get("isImageUploadEnable")?1:0);
-			statusUpdated.put(testName, status);
-		}
-		return statusUpdated;
-	}
-
 
 	@Override
 	public Response addReport(ReportRegistrationRequest reportRegistrationRequest)throws JsonMappingException, JsonProcessingException {

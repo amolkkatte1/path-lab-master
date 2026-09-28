@@ -161,16 +161,57 @@ public class Utility {
 		return LocalDate.now(INDIA_ZONE).minusMonths(1).getMonthValue();
 	}
 	
-	public static Map<String, Map<String, String>> convertReportDataForDB(Map<String, List<ParameterDetails>> testList){
-		 Map<String, Map<String, String>> updatedTestData = new HashMap<>();
-		 Map<String, String> testParameter = new HashMap<>();
-		 for(String test : testList.keySet()) {
-			 testParameter = new HashMap<>();
-			 for(ParameterDetails parameter: testList.get(test)) {
-				 testParameter.put(String.valueOf(parameter.getSequence()),  parameter.getValue()+"|"+ parameter.getIsBold() != null&&parameter.getIsBold()?"1":"0");
-			 }
-			 updatedTestData.put(test, testParameter);
-		 }
-		return updatedTestData;
+	public static Map<String, Map<String, String>> convertReportDataForDB(
+	        Map<String, List<ParameterDetails>> testList) {
+
+	    Map<String, Map<String, String>> updatedTestData = new HashMap<>();
+
+	    if (testList == null || testList.isEmpty()) {
+	        return updatedTestData;
+	    }
+
+		for (Map.Entry<String, List<ParameterDetails>> entry : testList.entrySet()) {
+			String test = entry.getKey();
+			System.out.println(test);
+			List<ParameterDetails> parameters = entry.getValue();
+			Map<String, String> testParameter = new HashMap<>();
+			if (parameters != null) {
+				for (ParameterDetails parameter : parameters) {
+					if (parameter == null) {
+						continue;
+					}
+					String sequence = String.valueOf(parameter.getSequence());
+					System.out.println(sequence);
+					String value = parameter.getValue() != null ? parameter.getValue() : "";
+					System.out.println(value);
+					if(value.equals("Titres above 1:80 suggest positive reaction")){
+						System.out.println(value);
+					}
+					String isBold = Boolean.TRUE.equals(parameter.getIsBold()) ? "1" : "0";
+					System.out.println(isBold);
+					testParameter.put(sequence, value + "|" + isBold);
+				}
+			}
+			updatedTestData.put(test, testParameter);
+		}
+	    return updatedTestData;
+	}
+	
+	public static Map<String, Map<String, Integer>> convertStatusDataForDB(Map<String, Map<String, Boolean>> status1) {
+		Map<String, Map<String, Integer>> statusUpdated = new HashMap<>();
+		if (status1 == null || status1.isEmpty()) {
+			return statusUpdated;
+		}
+		for (Map.Entry<String, Map<String, Boolean>> entry : status1.entrySet()) {
+			String testName = entry.getKey();
+			Map<String, Boolean> statusData = entry.getValue();
+			Map<String, Integer> status = new HashMap<>();
+			status.put("a", statusData != null && Boolean.TRUE.equals(statusData.get("isApproved")) ? 1 : 0);
+			status.put("p", statusData != null && Boolean.TRUE.equals(statusData.get("isPrinted")) ? 1 : 0);
+			status.put("s", statusData != null && Boolean.TRUE.equals(statusData.get("isSaved")) ? 1 : 0);
+			status.put("i", statusData != null && Boolean.TRUE.equals(statusData.get("isImageUploadEnable")) ? 1 : 0);
+			statusUpdated.put(testName, status);
+		}
+		return statusUpdated;
 	}
 }

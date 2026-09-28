@@ -166,7 +166,7 @@ public class ReportService implements IReportService {
 				for(String test: reportMaster.getCompletedTest1().keySet()) {
 					tempCompletedTest.put(test, list);
 				}
-				reportMaster.setPendingTest(tempCompletedTest);
+				reportMaster.setCompletedTest(tempCompletedTest);
 			}
 			if (reportMaster.getPendingTest() != null && !reportMaster.getPendingTest().isEmpty() && patientMap.containsKey(reportMaster.getPatientId())) {
 				reportMasterResponseList.add(new ReportMasterResponse(patientMap.get(reportMaster.getPatientId()),reportMaster));

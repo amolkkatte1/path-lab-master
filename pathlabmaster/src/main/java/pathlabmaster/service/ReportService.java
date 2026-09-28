@@ -379,51 +379,47 @@ public class ReportService implements IReportService {
 	public Response getReportsByFilter(PatientFilterRequest patientFilterRequest) {
 		String today = Utility.getTodayDate();
 		List<ReportMasterResponse> reportMasterResponseList = new ArrayList<>();
-		List<ReportMaster> reportMasterList =reportMasterRepo.filterReports(
-		        patientFilterRequest.getLabId(),
-		        patientFilterRequest.getFromDate(),
-		        patientFilterRequest.getToDate(),
-		        patientFilterRequest.getPatientId()
-		);
-		List<PatientMaster> patientMaster = patientMasterRepo.filterPatients(
-		        patientFilterRequest.getLabId(),
-		        patientFilterRequest.getFromDate(),
-		        patientFilterRequest.getToDate(),
-		        patientFilterRequest.getFirstName(),
-		        patientFilterRequest.getLastName(),
-		        patientFilterRequest.getPatientId(),
-		        patientFilterRequest.getDoctorName(),
-		        patientFilterRequest.getDoctorId()
-		);
-		for(ReportMaster reportMaster:reportMasterList) {
+		List<ReportMaster> reportMasterList = reportMasterRepo.filterReports(patientFilterRequest.getLabId(),
+				patientFilterRequest.getFromDate(), patientFilterRequest.getToDate(),
+				patientFilterRequest.getPatientId());
+		List<PatientMaster> patientMaster = patientMasterRepo.filterPatients(patientFilterRequest.getLabId(),
+				patientFilterRequest.getFromDate(), patientFilterRequest.getToDate(),
+				patientFilterRequest.getFirstName(), patientFilterRequest.getLastName(),
+				patientFilterRequest.getPatientId(), patientFilterRequest.getDoctorName(),
+				patientFilterRequest.getDoctorId());
+		for (ReportMaster reportMaster : reportMasterList) {
 			List<ParameterDetails> list = new ArrayList<>();
 			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
-			Map<String, List<ParameterDetails>> tempPendigTest = new HashMap<>();
-			for(String test: reportMaster.getPendingTest1().keySet()) {
-				tempPendigTest.put(test, list);
+				Map<String, List<ParameterDetails>> tempPendigTest = new HashMap<>();
+				for (String test : reportMaster.getPendingTest1().keySet()) {
+					tempPendigTest.put(test, list);
+				}
+				reportMaster.setPendingTest(tempPendigTest);
 			}
-			reportMaster.setPendingTest(tempPendigTest);
-		}
-		if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
-			Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
-			for(String test: reportMaster.getCompletedTest().keySet()) {
-				tempCompletedTest.put(test, list);
+			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+				Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
+				for (String test : reportMaster.getCompletedTest().keySet()) {
+					tempCompletedTest.put(test, list);
+				}
+				reportMaster.setPendingTest(tempCompletedTest);
 			}
-			reportMaster.setPendingTest(tempCompletedTest);
 			reportMaster.setStatus(convertStatusDataForUI(reportMaster.getStatus1()));
 		}
 //		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
-		Map<Long, ReportMaster> reportMap = reportMasterList.stream().collect(Collectors.toMap(ReportMaster::getPatientId,report -> report));
-		for(PatientMaster patient :patientMaster) {
-			if(reportMap.containsKey(patient.getPatientId())){
-				reportMasterResponseList.add(new ReportMasterResponse(patient,reportMap.get(patient.getPatientId())));
-			}
+			Map<Long, ReportMaster> reportMap = reportMasterList.stream()
+					.collect(Collectors.toMap(ReportMaster::getPatientId, report -> report));
+			for (PatientMaster patient : patientMaster) {
+				if (reportMap.containsKey(patient.getPatientId())) {
+					reportMasterResponseList
+							.add(new ReportMasterResponse(patient, reportMap.get(patient.getPatientId())));
+				}
 //				else {
 //				reportMasterResponseList.add(new ReportMasterResponse(patient));
 //			}
-		}
+			}
 		
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
+		
 	}
 	
 }

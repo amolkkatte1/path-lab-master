@@ -395,6 +395,23 @@ public class ReportService implements IReportService {
 		        patientFilterRequest.getDoctorName(),
 		        patientFilterRequest.getDoctorId()
 		);
+		for(ReportMaster reportMaster:reportMasterList) {
+			List<ParameterDetails> list = new ArrayList<>();
+			if (reportMaster.getPendingTest1() != null && !reportMaster.getPendingTest1().isEmpty()) {
+			Map<String, List<ParameterDetails>> tempPendigTest = new HashMap<>();
+			for(String test: reportMaster.getPendingTest1().keySet()) {
+				tempPendigTest.put(test, list);
+			}
+			reportMaster.setPendingTest(tempPendigTest);
+		}
+		if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
+			Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
+			for(String test: reportMaster.getCompletedTest().keySet()) {
+				tempCompletedTest.put(test, list);
+			}
+			reportMaster.setPendingTest(tempCompletedTest);
+			reportMaster.setStatus(convertStatusDataForUI(reportMaster.getStatus1()));
+		}
 //		Map<Long, PatientMaster> patientMap = patientMaster.stream().collect(Collectors.toMap(PatientMaster::getPatientId,patient -> patient));
 		Map<Long, ReportMaster> reportMap = reportMasterList.stream().collect(Collectors.toMap(ReportMaster::getPatientId,report -> report));
 		for(PatientMaster patient :patientMaster) {

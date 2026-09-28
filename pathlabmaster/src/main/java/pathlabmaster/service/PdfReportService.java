@@ -15,6 +15,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
@@ -530,10 +531,10 @@ public class PdfReportService {
 	    // FONTS
 	    // =====================================================
 
-	    Font normalFont = new Font(Font.HELVETICA, 10, Font.NORMAL);
-	    Font boldFont = new Font(Font.HELVETICA, 10, Font.BOLD);
-	    Font normalFont1 = new Font(Font.HELVETICA, 9, Font.NORMAL);
-	    Font boldFont1 = new Font(Font.HELVETICA, 9, Font.BOLD);
+	    Font normalFont = new Font(Font.HELVETICA, 11, Font.NORMAL);
+	    Font boldFont = new Font(Font.HELVETICA, 11, Font.BOLD);
+	    Font normalFont1 = new Font(Font.HELVETICA, 11, Font.NORMAL);
+	    Font boldFont1 = new Font(Font.HELVETICA, 11, Font.BOLD);
 
 	    // =====================================================
 	    // GET REPORT
@@ -1105,18 +1106,113 @@ public class PdfReportService {
 	        String unit = safe(parameter.getUnit());
 	        String referenceRange = getReferenceRange(parameter);
 
-	        boolean sequence2 = parameter.getSequence() != null && parameter.getSequence() == 2;
+	        boolean sequence2 = parameter.getSequence() != null
+	                && parameter.getSequence() == 2;
 
-	        Font parameterNameFont = sequence2 ? boldFont
-	                : Boolean.TRUE.equals(parameter.getIsNameBold()) ? boldFont1 : normalFont1;
+	        boolean descriptionParameter =
+	                Boolean.TRUE.equals(parameter.getIsDescriptionParameter());
 
-	        addParameterCell(testTable, parameterName, parameterNameFont, Element.ALIGN_LEFT);
+	        // =====================================================
+	        // PARAMETER NAME
+	        // =====================================================
+
+	        Font parameterNameFont = sequence2
+	                ? boldFont
+	                : Boolean.TRUE.equals(parameter.getIsNameBold())
+	                        ? boldFont1
+	                        : normalFont1;
+
+	        if (descriptionParameter) {
+
+	            PdfPCell parameterNameCell = new PdfPCell(
+	                    new Phrase(parameterName, parameterNameFont));
+
+	            parameterNameCell.setBorder(PdfPCell.NO_BORDER);
+	            parameterNameCell.setColspan(4);
+	            parameterNameCell.setPaddingLeft(5);
+	            parameterNameCell.setPaddingRight(5);
+	            parameterNameCell.setPaddingTop(1);
+	            parameterNameCell.setPaddingBottom(1);
+	            parameterNameCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+	            parameterNameCell.setVerticalAlignment(Element.ALIGN_TOP);
+
+	            testTable.addCell(parameterNameCell);
+
+	        } else {
+
+	            addParameterCell(
+	                    testTable,
+	                    parameterName,
+	                    parameterNameFont,
+	                    Element.ALIGN_LEFT
+	            );
+	        }
+
+	        // =====================================================
+	        // CHECK NUMBER VALUE AGAINST LOWER / UPPER RANGE
+	        // =====================================================
+
+	        boolean outOfRange = false;
+
+	        if ("number".equalsIgnoreCase(safe(parameter.getDataType()))
+	                && parameter.getValue() != null
+	                && !parameter.getValue().trim().isEmpty()
+	                && parameter.getLowerRange() != null
+	                && parameter.getUpperRange() != null) {
+
+	            try {
+
+	                BigDecimal actualValue =
+	                        new BigDecimal(parameter.getValue().trim());
+
+	                BigDecimal lowerRange =
+	                        parameter.getLowerRange();
+
+	                BigDecimal upperRange =
+	                        parameter.getUpperRange();
+
+	                if (actualValue.compareTo(lowerRange) < 0
+	                        || actualValue.compareTo(upperRange) > 0) {
+
+	                    outOfRange = true;
+	                }
+
+	            } catch (NumberFormatException e) {
+	                // Ignore invalid numeric values
+	            }
+	        }
+
+	        // =====================================================
+	        // VALUE FONT
+	        // =====================================================
+
+	        Font valueFont = outOfRange
+	                ? boldFont1
+	                : Boolean.TRUE.equals(parameter.getIsBold())
+	                        ? boldFont1
+	                        : normalFont1;
+
+	        // =====================================================
+	        // DESCRIPTION PARAMETER VALUE
+	        // =====================================================
 
 	        if (Boolean.TRUE.equals(parameter.getIsValueDiscription())) {
 
-	            PdfPCell descriptionCell = new PdfPCell(
-	                    new Phrase(value,
-	                            Boolean.TRUE.equals(parameter.getIsBold()) ? boldFont1 : normalFont1));
+	            PdfPCell descriptionCell;
+
+	            if (outOfRange) {
+
+	                Chunk valueChunk = new Chunk(value, boldFont1);
+	                valueChunk.setBackground(java.awt.Color.YELLOW);
+
+	                descriptionCell = new PdfPCell(
+	                        new Phrase(valueChunk));
+
+	            } else {
+
+	                descriptionCell = new PdfPCell(
+	                        new Phrase(value, valueFont));
+	            }
 
 	            descriptionCell.setBorder(PdfPCell.NO_BORDER);
 	            descriptionCell.setColspan(3);
@@ -1129,21 +1225,66 @@ public class PdfReportService {
 
 	            testTable.addCell(descriptionCell);
 
-	        } else {
+	        } else if (!descriptionParameter) {
 
-	            addParameterCell(testTable, value,
-	                    Boolean.TRUE.equals(parameter.getIsBold()) ? boldFont1 : normalFont1,
-	                    Element.ALIGN_LEFT);
+	            // =================================================
+	            // NORMAL VALUE CELL
+	            // =================================================
 
-	            addParameterCell(testTable, unit, normalFont1, Element.ALIGN_LEFT);
+	            PdfPCell valueCell;
 
-	            addParameterCell(testTable, referenceRange, normalFont1, Element.ALIGN_LEFT);
+	            if (outOfRange) {
+
+	                Chunk valueChunk = new Chunk(value, boldFont1);
+	                valueChunk.setBackground(java.awt.Color.YELLOW);
+
+	                valueCell = new PdfPCell(
+	                        new Phrase(valueChunk));
+
+	            } else {
+
+	                valueCell = new PdfPCell(
+	                        new Phrase(value, valueFont));
+	            }
+
+	            valueCell.setBorder(PdfPCell.NO_BORDER);
+	            valueCell.setPaddingLeft(5);
+	            valueCell.setPaddingRight(5);
+	            valueCell.setPaddingTop(1);
+	            valueCell.setPaddingBottom(1);
+	            valueCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+	            valueCell.setVerticalAlignment(Element.ALIGN_TOP);
+
+	            testTable.addCell(valueCell);
+
+	            // =================================================
+	            // UNIT
+	            // =================================================
+
+	            addParameterCell(
+	                    testTable,
+	                    unit,
+	                    normalFont1,
+	                    Element.ALIGN_LEFT
+	            );
+
+	            // =================================================
+	            // REFERENCE RANGE
+	            // =================================================
+
+	            addParameterCell(
+	                    testTable,
+	                    referenceRange,
+	                    normalFont1,
+	                    Element.ALIGN_LEFT
+	            );
 	        }
 
 	        // =====================================================
 	        // AFTER SEQUENCE 2 PARAMETER
 	        // SPACE -> SINGLE LINE
 	        // =====================================================
+
 	        if (sequence2) {
 
 	            // Space
@@ -1151,6 +1292,7 @@ public class PdfReportService {
 	            spaceCell.setColspan(4);
 	            spaceCell.setBorder(PdfPCell.NO_BORDER);
 	            spaceCell.setFixedHeight(4f);
+
 	            testTable.addCell(spaceCell);
 
 	            // Single line
@@ -1167,7 +1309,6 @@ public class PdfReportService {
 
 	    return testTable;
 	}
-
 
 	// ============================================================
 	// COLUMN HEADER
@@ -1563,7 +1704,7 @@ public class PdfReportService {
 			// END OF REPORT
 			// =====================================================
 
-			Font footerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
+			Font footerFont = new Font(Font.HELVETICA, 11, Font.BOLD);
 
 			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, new Phrase("End of Report", footerFont), centerX,
 					lineY - 95, 0);

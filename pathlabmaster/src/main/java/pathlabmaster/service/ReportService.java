@@ -321,7 +321,7 @@ public class ReportService implements IReportService {
 
 				String[] parts = value.split("\\|", -1);
 
-				String actualValue = parts[0] == null || parts[0].isBlank() ? parameter.getValue() : null;
+				String actualValue = parts[0];
 
 				boolean boldValue = parts[1].equals("1");
 

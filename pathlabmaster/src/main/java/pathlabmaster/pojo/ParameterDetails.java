@@ -155,4 +155,13 @@ public class ParameterDetails {
 	public void setIsValueDiscription(Boolean isValueDiscription) {
 		this.isValueDiscription = isValueDiscription;
 	}
+	@Override
+	public String toString() {
+		return "ParameterDetails [parameterName=" + parameterName + ", value=" + value + ", sequence=" + sequence
+				+ ", dataType=" + dataType + ", unit=" + unit + ", formula=" + formula + ", upperRange=" + upperRange
+				+ ", lowerRange=" + lowerRange + ", isBold=" + isBold + ", isNameBold=" + isNameBold
+				+ ", isDescriptionParameter=" + isDescriptionParameter + ", position=" + position + ", lineCount="
+				+ lineCount + ", parameterRange=" + parameterRange + ", isValueRequired=" + isValueRequired
+				+ ", isValueDiscription=" + isValueDiscription + "]";
+	}
 }

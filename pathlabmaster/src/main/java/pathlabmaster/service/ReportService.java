@@ -377,7 +377,6 @@ public class ReportService implements IReportService {
 
 	@Override
 	public Response getReportsByFilter(PatientFilterRequest patientFilterRequest) {
-		String today = Utility.getTodayDate();
 		List<ReportMasterResponse> reportMasterResponseList = new ArrayList<>();
 		List<ReportMaster> reportMasterList = reportMasterRepo.filterReports(patientFilterRequest.getLabId(),
 				patientFilterRequest.getFromDate(), patientFilterRequest.getToDate(),

@@ -137,7 +137,7 @@ public class ReportRestController {
 		PdfResponse pdfResponse = pdfReportService.createPdf(pId, rIds,hdr,mdsn,pg);
 
 		return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdfResponse.getFileName() + "\"")
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfResponse.getFileName() + "\"")
 				.contentType(MediaType.APPLICATION_PDF).body(pdfResponse.getPdf());
 	}
 }

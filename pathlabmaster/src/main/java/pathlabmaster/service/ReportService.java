@@ -62,6 +62,7 @@ public class ReportService implements IReportService {
 		status1.put("p", 0);
 		status1.put("s", 0);
 		status1.put("i", 0);
+		
 		Map<String, Integer> reportNames = new HashMap<>();
 		for (TestMaster test : reportRegistrationRequest.getTestList()) {
 			status1.put("i", Boolean.TRUE.equals(test.getIsImageUploadEnable())?1:0);

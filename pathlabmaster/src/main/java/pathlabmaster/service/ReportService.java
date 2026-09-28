@@ -163,7 +163,7 @@ public class ReportService implements IReportService {
 			}
 			if (reportMaster.getCompletedTest1() != null && !reportMaster.getCompletedTest1().isEmpty()) {
 				Map<String, List<ParameterDetails>> tempCompletedTest = new HashMap<>();
-				for(String test: reportMaster.getCompletedTest().keySet()) {
+				for(String test: reportMaster.getCompletedTest1().keySet()) {
 					tempCompletedTest.put(test, list);
 				}
 				reportMaster.setPendingTest(tempCompletedTest);

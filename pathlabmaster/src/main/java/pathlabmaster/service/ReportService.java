@@ -67,7 +67,8 @@ public class ReportService implements IReportService {
 			status1.put("i", Boolean.TRUE.equals(test.getIsImageUploadEnable())?1:0);
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));
 			for(ParameterMaster parameter : parameterMasterList) {
-				 parameterList1.put(String.valueOf(parameter.getSequence()),parameter.getValue() + "|" +(parameter.getIsBold() != null && parameter.getIsBold() ? "1" : "0"));
+				String value = (parameter.getValue() + "|" +(parameter.getIsBold() != null && parameter.getIsBold() ? "1" : "0"));
+				 parameterList1.put(String.valueOf(parameter.getSequence()),value);
 			}
 			reportStatus1.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), status1);
 			pendingTest1.put(test.getTestName()+"_"+String.valueOf(test.getTestId()), parameterList1);
@@ -321,7 +322,7 @@ public class ReportService implements IReportService {
 
 				String[] parts = value.split("\\|", -1);
 
-				String actualValue = parts[0]==null?parameter.getValue():parts[0];
+				String actualValue = parts[0];
 
 				boolean boldValue = parts[1].equals("1");
 

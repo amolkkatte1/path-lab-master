@@ -521,11 +521,11 @@ public class PdfReportService {
 		// FONTS
 		// =====================================================
 
-		Font normalFont = new Font(Font.HELVETICA, 11, Font.NORMAL);
-		Font boldFont = new Font(Font.HELVETICA, 11, Font.BOLD);
+		Font normalFont = new Font(Font.HELVETICA, 10, Font.NORMAL);
+		Font boldFont = new Font(Font.HELVETICA, 10, Font.BOLD);
 
-		Font normalFont1 = new Font(Font.HELVETICA, 11, Font.NORMAL);
-		Font boldFont1 = new Font(Font.HELVETICA, 11, Font.BOLD);
+		Font normalFont1 = new Font(Font.HELVETICA, 10, Font.NORMAL);
+		Font boldFont1 = new Font(Font.HELVETICA, 10, Font.BOLD);
 
 		// =====================================================
 		// GET REPORT

@@ -389,683 +389,562 @@ public class PdfReportService {
 	// CREATE INDIVIDUAL REPORT PDF
 	// ============================================================
 
-	public PdfResponse createPdf(Long patientId, String reportIds, boolean headerRequired,
-	        boolean mdSignRequired, boolean printGroup) throws Exception {
+	public PdfResponse createPdf(Long patientId, String reportIds, boolean headerRequired, boolean mdSignRequired,
+			boolean printGroup) throws Exception {
 
-	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-	    // =====================================================
-	    // GET PATIENT
-	    // =====================================================
+		// =====================================================
+		// GET PATIENT
+		// =====================================================
 
-	    PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
+		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
 
-	    if (patientDetails == null) {
-	        throw new RuntimeException("Patient not found : " + patientId);
-	    }
+		if (patientDetails == null) {
+			throw new RuntimeException("Patient not found : " + patientId);
+		}
 
-	    // =====================================================
-	    // CLIENT CONFIG
-	    // =====================================================
+		// =====================================================
+		// CLIENT CONFIG
+		// =====================================================
 
-	    ClientConfig clientConfig = clientConfigRepo.findByLabId(patientDetails.getLabId());
+		ClientConfig clientConfig = clientConfigRepo.findByLabId(patientDetails.getLabId());
 
-	    boolean isQrRequired = false;
-	    int qrCodePositionHorizantal = 2;
-	    int qrCodePositionVertical = 2;
-	    float qrSize = 60f;
+		boolean isQrRequired = false;
+		int qrCodePositionHorizantal = 2;
+		int qrCodePositionVertical = 2;
+		float qrSize = 60f;
 
-	    if (clientConfig != null) {
+		if (clientConfig != null) {
 
-	        isQrRequired = clientConfig.isQrCodeRequired();
+			isQrRequired = clientConfig.isQrCodeRequired();
 
-	        if (clientConfig.getQrCodeHorizantalPosition() != null) {
-	            qrCodePositionHorizantal = clientConfig.getQrCodeHorizantalPosition();
-	        }
+			if (clientConfig.getQrCodeHorizantalPosition() != null) {
+				qrCodePositionHorizantal = clientConfig.getQrCodeHorizantalPosition();
+			}
 
-	        if (clientConfig.getQrCodeVerticalPosition() != null) {
-	            qrCodePositionVertical = clientConfig.getQrCodeVerticalPosition();
-	        }
-	    }
+			if (clientConfig.getQrCodeVerticalPosition() != null) {
+				qrCodePositionVertical = clientConfig.getQrCodeVerticalPosition();
+			}
+		}
 
-	    // =====================================================
-	    // QR CODE
-	    // =====================================================
+		// =====================================================
+		// QR CODE
+		// =====================================================
 
-	    byte[] qrCode = null;
+		byte[] qrCode = null;
 
-	    if (isQrRequired) {
+		if (isQrRequired) {
 
 			String qrUrl = Constants.SELF_BASE_URL_PROD
 					+ Constants.QR_CODE_URL.replaceFirst("\\{}", String.valueOf(patientId))
 							.replaceFirst("\\{}", reportIds).replaceFirst("\\{}", String.valueOf(headerRequired))
-							.replaceFirst("\\{}", String.valueOf(mdSignRequired))
-							.replaceFirst("\\{}", String.valueOf(printGroup));
+							.replaceFirst("\\{}", String.valueOf(mdSignRequired));
 
-	        qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
-	    }
+			qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
+		}
 
-	    // =====================================================
-	    // MD SIGNATURE
-	    // =====================================================
+		// =====================================================
+		// MD SIGNATURE
+		// =====================================================
 
-	    MdDoctorMaster mdDoctorDetails = null;
-	    byte[] mdSign = null;
+		MdDoctorMaster mdDoctorDetails = null;
+		byte[] mdSign = null;
 
-	    int mdSignPositionHorizantal = 3;
+		int mdSignPositionHorizantal = 3;
 
-	    if (mdSignRequired) {
+		if (mdSignRequired) {
 
-	        mdDoctorDetails = mdDoctorRepo
-	                .findFirstByLabIdAndIsActiveTrueOrderByCreatedAtDesc(
-	                        patientDetails.getLabId())
-	                .orElse(null);
+			mdDoctorDetails = mdDoctorRepo
+					.findFirstByLabIdAndIsActiveTrueOrderByCreatedAtDesc(patientDetails.getLabId()).orElse(null);
 
-	        if (mdDoctorDetails != null) {
+			if (mdDoctorDetails != null) {
 
-	            mdSign = mdDoctorDetails.getSignImage();
+				mdSign = mdDoctorDetails.getSignImage();
 
-	            if (mdDoctorDetails.getSignPosition() != null) {
-	                mdSignPositionHorizantal = mdDoctorDetails.getSignPosition();
-	            }
-	        }
-	    }
+				if (mdDoctorDetails.getSignPosition() != null) {
+					mdSignPositionHorizantal = mdDoctorDetails.getSignPosition();
+				}
+			}
+		}
 
-	    // =====================================================
-	    // PAGE SPACING
-	    // =====================================================
+		// =====================================================
+		// PAGE SPACING
+		// =====================================================
 
-	    int topMargin = 20;
+		int topMargin = 20;
 
-	    if (clientConfig != null
-	            && clientConfig.getReportTopSpace() != null) {
+		if (clientConfig != null && clientConfig.getReportTopSpace() != null) {
 
-	        topMargin = clientConfig.getReportTopSpace();
-	    }
+			topMargin = clientConfig.getReportTopSpace();
+		}
 
-	    int bottomMargin = 20;
+		int bottomMargin = 20;
 
-	    if (clientConfig != null
-	            && clientConfig.getReportBottomSpace() != null) {
+		if (clientConfig != null && clientConfig.getReportBottomSpace() != null) {
 
-	        bottomMargin = clientConfig.getReportBottomSpace();
-	    }
+			bottomMargin = clientConfig.getReportBottomSpace();
+		}
 
-	    if (isQrRequired && mdSignRequired) {
-
-	        bottomMargin = Math.max(
-	                bottomMargin,
-	                125);
-
-	    } else if (isQrRequired) {
-
-	        bottomMargin = Math.max(
-	                bottomMargin,
-	                90);
-
-	    } else if (mdSignRequired) {
-
-	        bottomMargin = Math.max(
-	                bottomMargin,
-	                100);
-	    }
-
-	    // =====================================================
-	    // DOCUMENT
-	    // =====================================================
-
-	    Document document = new Document(
-	            PageSize.A4,
-	            30,
-	            30,
-	            78 + topMargin,
-	            bottomMargin);
+		if (isQrRequired && mdSignRequired) {
 
-	    PdfWriter writer = PdfWriter.getInstance(
-	            document,
-	            outputStream);
+			bottomMargin = Math.max(bottomMargin, 125);
 
-	    // =====================================================
-	    // FONTS
-	    // =====================================================
+		} else if (isQrRequired) {
 
-	    Font normalFont = new Font(
-	            Font.HELVETICA,
-	            10,
-	            Font.NORMAL);
+			bottomMargin = Math.max(bottomMargin, 90);
 
-	    Font boldFont = new Font(
-	            Font.HELVETICA,
-	            10,
-	            Font.BOLD);
+		} else if (mdSignRequired) {
 
-	    Font normalFont1 = new Font(
-	            Font.HELVETICA,
-	            10,
-	            Font.NORMAL);
-
-	    Font boldFont1 = new Font(
-	            Font.HELVETICA,
-	            10,
-	            Font.BOLD);
-
-	    // =====================================================
-	    // GET REPORT
-	    // =====================================================
-
-	    ReportMaster reportDetails =
-	            reportMasterRepo.findByPatientIdAndLabId(
-	                    patientId,
-	                    patientDetails.getLabId());
-
-	    if (reportDetails == null) {
-	        throw new RuntimeException(
-	                "Report not found for patient : " + patientId);
-	    }
-
-	    reportDetails.setPendingTest1(null);
-
-	    reportDetails =
-	            reportService.convertReportMasterForUI(
-	                    reportDetails);
-
-	    if (reportDetails == null) {
-	        throw new RuntimeException(
-	                "Report not found for patient : " + patientId);
-	    }
-
-	    // =====================================================
-	    // PAGE HEADER
-	    //
-	    // IMPORTANT:
-	    // Only patient header is drawn in onEndPage().
-	    // Column header is now added in document flow.
-	    // =====================================================
-
-	    ReportPageHeader pageHeader =
-	            new ReportPageHeader(
-	                    patientId,
-	                    patientDetails,
-	                    reportDetails,
-	                    boldFont,
-	                    topMargin,
-	                    qrCode,
-	                    qrCodePositionHorizantal,
-	                    qrCodePositionVertical,
-	                    qrSize,
-	                    isQrRequired,
-	                    mdSign,
-	                    mdDoctorDetails,
-	                    mdSignPositionHorizantal,
-	                    mdSignRequired);
-
-	    writer.setPageEvent(pageHeader);
-
-	    document.open();
-
-	    // =====================================================
-	    // REPORT IDS
-	    // =====================================================
-
-	    List<String> reportIdList =
-	            Arrays.asList(reportIds.split("\\|"));
-
-	    // =====================================================
-	    // ORIGINAL COMPLETED TESTS
-	    // =====================================================
+			bottomMargin = Math.max(bottomMargin, 100);
+		}
 
-	    Map<String, List<ParameterDetails>> reportOriginal =
-	            reportDetails.getCompletedTest();
+		// =====================================================
+		// DOCUMENT
+		// =====================================================
 
-	    Map<String, List<ParameterDetails>> reports =
-	            new HashMap<>();
+		Document document = new Document(PageSize.A4, 30, 30, 78 + topMargin, bottomMargin);
 
-	    if (reportOriginal != null) {
+		PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
-	        for (Map.Entry<String, List<ParameterDetails>> entry
-	                : reportOriginal.entrySet()) {
-
-	            String id = entry.getKey();
+		// =====================================================
+		// FONTS
+		// =====================================================
 
-	            if (id != null && id.length() >= 17) {
+		Font normalFont = new Font(Font.HELVETICA, 10, Font.NORMAL);
 
-	                String shortId =
-	                        id.substring(id.length() - 17);
+		Font boldFont = new Font(Font.HELVETICA, 10, Font.BOLD);
 
-	                reports.put(
-	                        shortId,
-	                        entry.getValue());
-	            }
-	        }
-	    }
+		Font normalFont1 = new Font(Font.HELVETICA, 10, Font.NORMAL);
 
-	    // =====================================================
-	    // GROUP TESTS
-	    // =====================================================
+		Font boldFont1 = new Font(Font.HELVETICA, 10, Font.BOLD);
 
-	    Map<String, List<List<ParameterDetails>>> groupedTests =
-	            new LinkedHashMap<>();
+		// =====================================================
+		// GET REPORT
+		// =====================================================
 
-	    for (String reportId : reportIdList) {
+		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
 
-	        if (reportId == null
-	                || reportId.trim().isEmpty()) {
-	            continue;
-	        }
+		if (reportDetails == null) {
+			throw new RuntimeException("Report not found for patient : " + patientId);
+		}
 
-	        reportId = reportId.trim();
+		reportDetails.setPendingTest1(null);
 
-	        List<ParameterDetails> testDetails =
-	                reports.get(reportId);
+		reportDetails = reportService.convertReportMasterForUI(reportDetails);
 
-	        if (testDetails == null
-	                || testDetails.isEmpty()) {
-	            continue;
-	        }
+		if (reportDetails == null) {
+			throw new RuntimeException("Report not found for patient : " + patientId);
+		}
 
-	        // Sort parameters by sequence
-	        testDetails.sort(
-	                Comparator.comparing(
-	                        ParameterDetails::getSequence,
-	                        Comparator.nullsLast(
-	                                Integer::compareTo)));
+		// =====================================================
+		// PAGE HEADER
+		//
+		// Only patient details are drawn here.
+		// Column header is handled in document flow.
+		// =====================================================
 
-	        // =================================================
-	        // FIND GROUP NAME
-	        // sequence = 1
-	        // =================================================
+		ReportPageHeader pageHeader = new ReportPageHeader(patientId, patientDetails, reportDetails, boldFont,
+				topMargin, qrCode, qrCodePositionHorizantal, qrCodePositionVertical, qrSize, isQrRequired, mdSign,
+				mdDoctorDetails, mdSignPositionHorizantal, mdSignRequired);
 
-	        String groupName = "";
+		writer.setPageEvent(pageHeader);
 
-	        for (ParameterDetails parameter : testDetails) {
+		document.open();
 
-	            if (parameter.getSequence() != null
-	                    && parameter.getSequence() == 1) {
+		// =====================================================
+		// REPORT IDS
+		// =====================================================
 
-	                groupName =
-	                        safe(parameter.getParameterName());
+		List<String> reportIdList = Arrays.asList(reportIds.split("\\|"));
 
-	                break;
-	            }
-	        }
+		// =====================================================
+		// ORIGINAL COMPLETED TESTS
+		// =====================================================
 
-	        if (groupName == null
-	                || groupName.trim().isEmpty()) {
+		Map<String, List<ParameterDetails>> reportOriginal = reportDetails.getCompletedTest();
 
-	            groupName = "OTHER";
-	        }
+		Map<String, List<ParameterDetails>> reports = new HashMap<>();
 
-	        groupedTests
-	                .computeIfAbsent(
-	                        groupName,
-	                        k -> new ArrayList<>())
-	                .add(testDetails);
-	    }
+		if (reportOriginal != null) {
 
-	    // =====================================================
-	    // HAEMATOLOGY FIRST
-	    // =====================================================
+			for (Map.Entry<String, List<ParameterDetails>> entry : reportOriginal.entrySet()) {
 
-	    if (groupedTests.size() > 1) {
+				String id = entry.getKey();
 
-	        Map<String, List<List<ParameterDetails>>> orderedGroups =
-	                new LinkedHashMap<>();
+				if (id != null && id.length() >= 17) {
 
-	        String haematologyKey = null;
+					String shortId = id.substring(id.length() - 17);
 
-	        for (String groupName : groupedTests.keySet()) {
+					reports.put(shortId, entry.getValue());
+				}
+			}
+		}
 
-	            if ("HAEMATOLOGY".equalsIgnoreCase(
-	                    groupName != null
-	                            ? groupName.trim()
-	                            : "")) {
+		// =====================================================
+		// GROUP TESTS
+		// =====================================================
 
-	                haematologyKey = groupName;
-	                break;
-	            }
-	        }
+		Map<String, List<List<ParameterDetails>>> groupedTests = new LinkedHashMap<>();
 
-	        if (haematologyKey != null) {
+		for (String reportId : reportIdList) {
 
-	            orderedGroups.put(
-	                    haematologyKey,
-	                    groupedTests.get(haematologyKey));
-	        }
+			if (reportId == null || reportId.trim().isEmpty()) {
+				continue;
+			}
 
-	        for (Map.Entry<String, List<List<ParameterDetails>>> entry
-	                : groupedTests.entrySet()) {
+			reportId = reportId.trim();
 
-	            if (haematologyKey != null
-	                    && entry.getKey().equals(haematologyKey)) {
-	                continue;
-	            }
+			List<ParameterDetails> testDetails = reports.get(reportId);
 
-	            orderedGroups.put(
-	                    entry.getKey(),
-	                    entry.getValue());
-	        }
+			if (testDetails == null || testDetails.isEmpty()) {
+				continue;
+			}
 
-	        groupedTests = orderedGroups;
-	    }
+			testDetails.sort(
+					Comparator.comparing(ParameterDetails::getSequence, Comparator.nullsLast(Integer::compareTo)));
 
-	    // =====================================================
-	    // PRINT GROUPS / TESTS
-	    // =====================================================
+			// =================================================
+			// FIND GROUP NAME
+			// =================================================
 
-	    int groupIndex = 0;
+			String groupName = "";
 
-	    for (Map.Entry<String, List<List<ParameterDetails>>> groupEntry
-	            : groupedTests.entrySet()) {
+			for (ParameterDetails parameter : testDetails) {
 
-	        String groupName = groupEntry.getKey();
+				if (parameter.getSequence() != null && parameter.getSequence() == 1) {
 
-	        List<List<ParameterDetails>> testsInGroup =
-	                groupEntry.getValue();
+					groupName = safe(parameter.getParameterName());
 
-	        boolean groupTitlePrinted = false;
+					break;
+				}
+			}
 
-	        int previousTestPage = -1;
+			if (groupName == null || groupName.trim().isEmpty()) {
 
-	        // =================================================
-	        // EACH TEST
-	        // =================================================
+				groupName = "OTHER";
+			}
 
-	        for (int testIndex = 0;
-	                testIndex < testsInGroup.size();
-	                testIndex++) {
+			groupedTests.computeIfAbsent(groupName, k -> new ArrayList<>()).add(testDetails);
+		}
 
-	            List<ParameterDetails> testDetails =
-	                    testsInGroup.get(testIndex);
+		// =====================================================
+		// HAEMATOLOGY FIRST
+		// =====================================================
 
-	            // =============================================
-	            // REMOVE SEQUENCE 1
-	            // =============================================
+		if (groupedTests.size() > 1) {
 
-	            List<ParameterDetails> parametersForTest =
-	                    new ArrayList<>();
+			Map<String, List<List<ParameterDetails>>> orderedGroups = new LinkedHashMap<>();
 
-	            for (ParameterDetails parameter : testDetails) {
+			String haematologyKey = null;
 
-	                if (parameter.getSequence() != null
-	                        && parameter.getSequence() == 1) {
-	                    continue;
-	                }
+			for (String groupName : groupedTests.keySet()) {
 
-	                parametersForTest.add(parameter);
-	            }
+				if ("HAEMATOLOGY".equalsIgnoreCase(groupName != null ? groupName.trim() : "")) {
 
-	            // =============================================
-	            // CREATE TEST TABLE
-	            // =============================================
+					haematologyKey = groupName;
+					break;
+				}
+			}
 
-	            PdfPTable testTable =
-	                    createTestTable(
-	                            parametersForTest,
-	                            normalFont,
-	                            boldFont,
-	                            normalFont1,
-	                            boldFont1);
+			if (haematologyKey != null) {
 
-	            // =================================================
-	            // PRINT GROUP = FALSE
-	            // One complete test per page
-	            // =================================================
+				orderedGroups.put(haematologyKey, groupedTests.get(haematologyKey));
+			}
 
-	            if (!printGroup) {
+			for (Map.Entry<String, List<List<ParameterDetails>>> entry : groupedTests.entrySet()) {
 
-	                if (groupIndex > 0
-	                        || testIndex > 0) {
+				if (haematologyKey != null && entry.getKey().equals(haematologyKey)) {
+					continue;
+				}
 
-	                    document.newPage();
-	                }
+				orderedGroups.put(entry.getKey(), entry.getValue());
+			}
 
-	                // =============================================
-	                // 1. TEST NAME / GROUP TITLE
-	                // =============================================
+			groupedTests = orderedGroups;
+		}
 
-	                addGroupTitle(
-	                        document,
-	                        groupName,
-	                        boldFont);
+		// =====================================================
+		// TRACK COLUMN HEADER PAGE
+		//
+		// Column header will be printed only once on each page.
+		// =====================================================
 
-	                // =============================================
-	                // 2. COLUMN HEADER
-	                // =============================================
+		int columnHeaderPage = -1;
 
-	                PdfPTable columnHeaderTable =
-	                        createColumnHeaderTable(boldFont);
+		int groupIndex = 0;
 
-	                document.add(columnHeaderTable);
+		// =====================================================
+		// GROUP LOOP
+		// =====================================================
 
-	                // =============================================
-	                // 3. TEST PARAMETERS
-	                // =============================================
+		for (Map.Entry<String, List<List<ParameterDetails>>> groupEntry : groupedTests.entrySet()) {
 
-	                PdfPTable testWrapper =
-	                        new PdfPTable(1);
+			String groupName = groupEntry.getKey();
 
-	                testWrapper.setWidthPercentage(100);
-	                testWrapper.setKeepTogether(true);
+			List<List<ParameterDetails>> testsInGroup = groupEntry.getValue();
 
-	                PdfPCell testCell =
-	                        new PdfPCell(testTable);
+			boolean groupTitlePrinted = false;
 
-	                testCell.setBorder(
-	                        PdfPCell.NO_BORDER);
+			int previousTestPage = -1;
 
-	                testCell.setPadding(0);
+			// =================================================
+			// TEST LOOP
+			// =================================================
 
-	                testWrapper.addCell(testCell);
+			for (int testIndex = 0; testIndex < testsInGroup.size(); testIndex++) {
 
-	                document.add(testWrapper);
+				List<ParameterDetails> testDetails = testsInGroup.get(testIndex);
 
-	                continue;
-	            }
+				// =============================================
+				// REMOVE SEQUENCE 1
+				// =============================================
 
-	            // =================================================
-	            // PRINT GROUP = TRUE
-	            // =================================================
+				List<ParameterDetails> parametersForTest = new ArrayList<>();
 
-	            float requiredTestHeight =
-	                    calculateTestHeight(testDetails);
+				for (ParameterDetails parameter : testDetails) {
 
-	            requiredTestHeight += 4;
+					if (parameter.getSequence() != null && parameter.getSequence() == 1) {
+						continue;
+					}
 
-	            float currentY =
-	                    writer.getVerticalPosition(true);
+					parametersForTest.add(parameter);
+				}
 
-	            float availableHeight =
-	                    currentY - document.bottomMargin();
+				// =============================================
+				// CREATE TEST TABLE
+				// =============================================
 
-	            // =================================================
-	            // GROUP TITLE
-	            // =================================================
+				PdfPTable testTable = createTestTable(parametersForTest, normalFont, boldFont, normalFont1, boldFont1);
 
-	            if (!groupTitlePrinted) {
+				// =================================================
+				// PRINT GROUP = FALSE
+				// =================================================
 
-	                float groupTitleHeight = 18f;
+				if (!printGroup) {
 
-	                float requiredHeight =
-	                        groupTitleHeight
-	                        + requiredTestHeight;
+					if (groupIndex > 0 || testIndex > 0) {
 
-	                if (requiredHeight > availableHeight) {
+						document.newPage();
+					}
 
-	                    document.newPage();
+					// ---------------------------------------------
+					// TEST TITLE
+					// ---------------------------------------------
 
-	                    addGroupTitle(
-	                            document,
-	                            groupName,
-	                            boldFont);
+					addGroupTitle(document, groupName, boldFont);
 
-	                } else {
+					// ---------------------------------------------
+					// COLUMN HEADER - ONCE FOR THIS PAGE
+					// ---------------------------------------------
 
-	                    addGroupTitle(
-	                            document,
-	                            groupName,
-	                            boldFont);
-	                }
+					int currentPage = writer.getPageNumber();
 
-	                groupTitlePrinted = true;
+					if (columnHeaderPage != currentPage) {
 
-	            } else {
+						PdfPTable columnHeaderTable = createColumnHeaderTable(boldFont);
 
-	                if (requiredTestHeight > availableHeight) {
+						document.add(columnHeaderTable);
 
-	                    document.newPage();
+						columnHeaderPage = writer.getPageNumber();
+					}
 
-	                    addGroupTitle(
-	                            document,
-	                            groupName,
-	                            boldFont);
-	                }
-	            }
+					// ---------------------------------------------
+					// TEST TABLE
+					// ---------------------------------------------
 
-	            // =================================================
-	            // COLUMN HEADER
-	            //
-	            // Test title is already printed above.
-	            // Now print column header.
-	            // =================================================
+					PdfPTable testWrapper = new PdfPTable(1);
 
-	            PdfPTable columnHeaderTable =
-	                    createColumnHeaderTable(boldFont);
+					testWrapper.setWidthPercentage(100);
+					testWrapper.setKeepTogether(true);
 
-	            document.add(columnHeaderTable);
+					PdfPCell testCell = new PdfPCell(testTable);
 
-	            // =================================================
-	            // CURRENT PAGE
-	            // =================================================
+					testCell.setBorder(PdfPCell.NO_BORDER);
 
-	            int currentPage =
-	                    writer.getPageNumber();
+					testCell.setPadding(0);
 
-	            // =================================================
-	            // SEPARATOR BETWEEN TESTS
-	            // =================================================
+					testWrapper.addCell(testCell);
 
-	            boolean addSeparator =
-	                    testIndex > 0
-	                    && previousTestPage == currentPage;
+					document.add(testWrapper);
 
-	            if (addSeparator) {
+					continue;
+				}
 
-	                Paragraph spaceBeforeLine =
-	                        new Paragraph(" ");
+				// =================================================
+				// PRINT GROUP = TRUE
+				// =================================================
 
-	                spaceBeforeLine.setLeading(3);
+				float requiredTestHeight = calculateTestHeight(testDetails);
 
-	                document.add(spaceBeforeLine);
+				requiredTestHeight += 4;
 
-	                PdfPTable separatorTable =
-	                        new PdfPTable(1);
+				float currentY = writer.getVerticalPosition(true);
 
-	                separatorTable.setWidthPercentage(100);
+				float availableHeight = currentY - document.bottomMargin();
 
-	                PdfPCell separatorCell =
-	                        new PdfPCell();
+				// =================================================
+				// GROUP TITLE
+				// =================================================
 
-	                separatorCell.setBorder(
-	                        PdfPCell.TOP);
+				if (!groupTitlePrinted) {
 
-	                separatorCell.setBorderWidthTop(
-	                        0.8f);
+					float groupTitleHeight = 18f;
 
-	                separatorCell.setPaddingTop(0);
-	                separatorCell.setPaddingBottom(0);
+					float requiredHeight = groupTitleHeight + requiredTestHeight;
 
-	                separatorTable.addCell(
-	                        separatorCell);
+					if (requiredHeight > availableHeight) {
 
-	                document.add(separatorTable);
+						document.newPage();
 
-	                Paragraph spaceAfterLine =
-	                        new Paragraph(" ");
+						addGroupTitle(document, groupName, boldFont);
 
-	                spaceAfterLine.setLeading(3);
+					} else {
 
-	                document.add(spaceAfterLine);
-	            }
+						addGroupTitle(document, groupName, boldFont);
+					}
 
-	            // =================================================
-	            // TEST TABLE
-	            // =================================================
+					groupTitlePrinted = true;
 
-	            PdfPTable testWrapper =
-	                    new PdfPTable(1);
+				} else {
 
-	            testWrapper.setWidthPercentage(100);
-	            testWrapper.setKeepTogether(true);
+					// =============================================
+					// CHECK WHETHER TEST FITS ON CURRENT PAGE
+					// =============================================
 
-	            PdfPCell testCell =
-	                    new PdfPCell(testTable);
+					if (requiredTestHeight > availableHeight) {
 
-	            testCell.setBorder(
-	                    PdfPCell.NO_BORDER);
+						document.newPage();
 
-	            testCell.setPadding(0);
+						// -----------------------------------------
+						// New page gets its group/test title
+						// -----------------------------------------
 
-	            testWrapper.addCell(testCell);
+						addGroupTitle(document, groupName, boldFont);
+					}
+				}
 
-	            document.add(testWrapper);
+				// =================================================
+				// COLUMN HEADER
+				//
+				// IMPORTANT:
+				// Only add it if this page does not already have it.
+				// =================================================
 
-	            // =================================================
-	            // SPACE AFTER TEST
-	            // =================================================
+				int currentPage = writer.getPageNumber();
 
-	            Paragraph testSpace =
-	                    new Paragraph(" ");
+				if (columnHeaderPage != currentPage) {
 
-	            testSpace.setLeading(5);
+					PdfPTable columnHeaderTable = createColumnHeaderTable(boldFont);
 
-	            document.add(testSpace);
+					document.add(columnHeaderTable);
 
-	            previousTestPage =
-	                    writer.getPageNumber();
-	        }
+					columnHeaderPage = writer.getPageNumber();
+				}
 
-	        groupIndex++;
+				// =================================================
+				// SEPARATOR BETWEEN TESTS
+				// =================================================
 
-	        // =====================================================
-	        // SPACE BETWEEN GROUPS
-	        // =====================================================
+				currentPage = writer.getPageNumber();
 
-	        if (printGroup
-	                && groupIndex < groupedTests.size()) {
+				boolean addSeparator = testIndex > 0 && previousTestPage == currentPage;
 
-	            Paragraph groupSpace =
-	                    new Paragraph(" ");
+				if (addSeparator) {
 
-	            groupSpace.setLeading(2);
+					Paragraph spaceBeforeLine = new Paragraph(" ");
 
-	            document.add(groupSpace);
-	        }
-	    }
+					spaceBeforeLine.setLeading(3);
 
-	    // =====================================================
-	    // CLOSE DOCUMENT
-	    // =====================================================
+					document.add(spaceBeforeLine);
 
-	    document.close();
+					PdfPTable separatorTable = new PdfPTable(1);
 
-	    // =====================================================
-	    // FILE NAME
-	    // =====================================================
+					separatorTable.setWidthPercentage(100);
 
-	    String fileName =
-	            "Report-"
-	            + safe(patientDetails.getFirstName())
-	            + " "
-	            + safe(patientDetails.getMiddleName())
-	            + " "
-	            + safe(patientDetails.getLastName())
-	            + ".pdf";
+					PdfPCell separatorCell = new PdfPCell();
 
-	    return new PdfResponse(
-	            outputStream.toByteArray(),
-	            fileName);
+					separatorCell.setBorder(PdfPCell.TOP);
+
+					separatorCell.setBorderWidthTop(0.8f);
+
+					separatorCell.setPaddingTop(0);
+					separatorCell.setPaddingBottom(0);
+
+					separatorTable.addCell(separatorCell);
+
+					document.add(separatorTable);
+
+					Paragraph spaceAfterLine = new Paragraph(" ");
+
+					spaceAfterLine.setLeading(3);
+
+					document.add(spaceAfterLine);
+				}
+
+				// =================================================
+				// TEST TABLE
+				// =================================================
+
+				PdfPTable testWrapper = new PdfPTable(1);
+
+				testWrapper.setWidthPercentage(100);
+				testWrapper.setKeepTogether(true);
+
+				PdfPCell testCell = new PdfPCell(testTable);
+
+				testCell.setBorder(PdfPCell.NO_BORDER);
+
+				testCell.setPadding(0);
+
+				testWrapper.addCell(testCell);
+
+				document.add(testWrapper);
+
+				// =================================================
+				// SPACE AFTER TEST
+				// =================================================
+
+				Paragraph testSpace = new Paragraph(" ");
+
+				testSpace.setLeading(5);
+
+				document.add(testSpace);
+
+				previousTestPage = writer.getPageNumber();
+			}
+
+			groupIndex++;
+
+			// =====================================================
+			// SPACE BETWEEN GROUPS
+			// =====================================================
+
+			if (printGroup && groupIndex < groupedTests.size()) {
+
+				Paragraph groupSpace = new Paragraph(" ");
+
+				groupSpace.setLeading(2);
+
+				document.add(groupSpace);
+			}
+		}
+
+		// =====================================================
+		// CLOSE DOCUMENT
+		// =====================================================
+
+		document.close();
+
+		// =====================================================
+		// FILE NAME
+		// =====================================================
+
+		String fileName = "Report-" + safe(patientDetails.getFirstName()) + " " + safe(patientDetails.getMiddleName())
+				+ " " + safe(patientDetails.getLastName()) + ".pdf";
+
+		return new PdfResponse(outputStream.toByteArray(), fileName);
 	}
-
 	// ============================================================
 	// ADD GROUP TITLE
 	// ============================================================
@@ -1102,9 +981,9 @@ public class PdfReportService {
 
 		patientTable.setWidths(new float[] { 15, 50, 15, 30 });
 		String space = "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
-		if(patientDetails.getGender().equalsIgnoreCase("female")){
+		if (patientDetails.getGender().equalsIgnoreCase("female")) {
 			space = "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
-		}else if(patientDetails.getGender().equalsIgnoreCase("other")) {
+		} else if (patientDetails.getGender().equalsIgnoreCase("other")) {
 			space = "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
 		}
 
@@ -1114,19 +993,21 @@ public class PdfReportService {
 
 		addPatientCell(patientTable, "Sex / Age", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(patientDetails.getGender()) + " / " + safe(patientDetails.getYear())
-				+ space,
-				boldFont, Element.ALIGN_RIGHT);
+		addPatientCell(patientTable,
+				": " + safe(patientDetails.getGender()) + " / " + safe(patientDetails.getYear()) + space, boldFont,
+				Element.ALIGN_RIGHT);
 
 		addPatientCell(patientTable, "Name", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(patientDetails.getPrefix()) + " "+safe(patientDetails.getFirstName()) + " "
-				+ safe(patientDetails.getMiddleName()) + " " + safe(patientDetails.getLastName()), boldFont,
-				Element.ALIGN_LEFT);
+		addPatientCell(patientTable,
+				": " + safe(patientDetails.getPrefix()) + " " + safe(patientDetails.getFirstName()) + " "
+						+ safe(patientDetails.getMiddleName()) + " " + safe(patientDetails.getLastName()),
+				boldFont, Element.ALIGN_LEFT);
 
 		addPatientCell(patientTable, "Reg Date", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(Utility.formatDateTime(patientDetails.getCreatedAt())), boldFont, Element.ALIGN_RIGHT);
+		addPatientCell(patientTable, ": " + safe(Utility.formatDateTime(patientDetails.getCreatedAt())), boldFont,
+				Element.ALIGN_RIGHT);
 
 		addPatientCell(patientTable, "Referred Dr", boldFont, Element.ALIGN_LEFT);
 
@@ -1134,7 +1015,8 @@ public class PdfReportService {
 
 		addPatientCell(patientTable, "Report Date", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(Utility.formatDateTime(reportDetails.getCreatedAt())), boldFont, Element.ALIGN_RIGHT);
+		addPatientCell(patientTable, ": " + safe(Utility.formatDateTime(reportDetails.getCreatedAt())), boldFont,
+				Element.ALIGN_RIGHT);
 
 		patientTable.addCell(createEmptyCell(4));
 
@@ -1505,34 +1387,33 @@ public class PdfReportService {
 
 	private String getReferenceRange(ParameterDetails parameter) {
 
-	    BigDecimal lowerRange = parameter.getLowerRange();
-	    BigDecimal upperRange = parameter.getUpperRange();
-	    String parameterRange = parameter.getParameterRange();
+		BigDecimal lowerRange = parameter.getLowerRange();
+		BigDecimal upperRange = parameter.getUpperRange();
+		String parameterRange = parameter.getParameterRange();
 
-	    boolean hasParameterRange = parameterRange != null && !parameterRange.isEmpty();
+		boolean hasParameterRange = parameterRange != null && !parameterRange.isEmpty();
 
-	    if (lowerRange != null && upperRange != null) {
-	        String lower = lowerRange.stripTrailingZeros().toPlainString();
-	        String upper = upperRange.stripTrailingZeros().toPlainString();
-	        if (hasParameterRange && parameterRange.equalsIgnoreCase("upto")) {
-	            return parameterRange + " " + upper;
-	        }else if (hasParameterRange) {
-	            return lower + " " + parameterRange + " " + upper;
-	        }
+		if (lowerRange != null && upperRange != null) {
+			String lower = lowerRange.stripTrailingZeros().toPlainString();
+			String upper = upperRange.stripTrailingZeros().toPlainString();
+			if (hasParameterRange && parameterRange.equalsIgnoreCase("upto")) {
+				return parameterRange + " " + upper;
+			} else if (hasParameterRange) {
+				return lower + " " + parameterRange + " " + upper;
+			}
 
-	        return lower + " - " + upper;
-	    }
+			return lower + " - " + upper;
+		}
 
-	    if (upperRange != null && hasParameterRange) {
-	        return parameterRange + "  "
-	                + upperRange.stripTrailingZeros().toPlainString();
-	    }
+		if (upperRange != null && hasParameterRange) {
+			return parameterRange + "  " + upperRange.stripTrailingZeros().toPlainString();
+		}
 
-	    if (hasParameterRange) {
-	        return parameterRange;
-	    }
+		if (hasParameterRange) {
+			return parameterRange;
+		}
 
-	    return "";
+		return "";
 	}
 
 	// ============================================================
@@ -1747,69 +1628,54 @@ public class PdfReportService {
 
 		@Override
 		public void onEndPage(PdfWriter writer, Document document) {
-		    try {
-		        PdfContentByte canvas = writer.getDirectContent();
-		        canvas.saveState();
+			try {
+				PdfContentByte canvas = writer.getDirectContent();
+				canvas.saveState();
 
-		        float pageWidth = document.getPageSize().getWidth();
-		        float pageHeight = document.getPageSize().getHeight();
+				float pageWidth = document.getPageSize().getWidth();
+				float pageHeight = document.getPageSize().getHeight();
 
-		        float left = document.leftMargin();
-		        float right = pageWidth - document.rightMargin();
-		        float width = right - left;
+				float left = document.leftMargin();
+				float right = pageWidth - document.rightMargin();
+				float width = right - left;
 
-		        // =====================================================
-		        // PATIENT HEADER
-		        // =====================================================
+				// =====================================================
+				// PATIENT HEADER
+				// =====================================================
 
-		        PdfPTable headerTable =
-		                createPatientTable(
-		                        patientId,
-		                        patientDetails,
-		                        reportDetails,
-		                        boldFont);
+				PdfPTable headerTable = createPatientTable(patientId, patientDetails, reportDetails, boldFont);
 
-		        headerTable.setTotalWidth(width);
+				headerTable.setTotalWidth(width);
 
-		        float headerY =
-		                pageHeight - (20 + topMargin);
+				float headerY = pageHeight - (20 + topMargin);
 
-		        headerTable.writeSelectedRows(
-		                0,
-		                -1,
-		                left,
-		                headerY,
-		                canvas);
+				headerTable.writeSelectedRows(0, -1, left, headerY, canvas);
 
-		        // =====================================================
-		        // BOTTOM BORDER AFTER PATIENT HEADER
-		        // =====================================================
+				// =====================================================
+				// BOTTOM BORDER AFTER PATIENT HEADER
+				// =====================================================
 
-		        float patientHeaderHeight = headerTable.getTotalHeight();
+				float patientHeaderHeight = headerTable.getTotalHeight();
 
-		        float lineY = headerY - patientHeaderHeight - 6;
+				float lineY = headerY - patientHeaderHeight - 6;
 
-		        canvas.setLineWidth(0.8f);
-		        canvas.moveTo(left, lineY);
-		        canvas.lineTo(right, lineY);
-		        canvas.stroke();
+				canvas.setLineWidth(0.8f);
+				canvas.moveTo(left, lineY);
+				canvas.lineTo(right, lineY);
+				canvas.stroke();
 
-		        // =====================================================
-		        // FOOTER
-		        // =====================================================
+				// =====================================================
+				// FOOTER
+				// =====================================================
 
-		        drawEndOfReport(
-		                canvas,
-		                document);
+				drawEndOfReport(canvas, document);
 
-		        canvas.restoreState();
+				canvas.restoreState();
 
-		    } catch (Exception e) {
+			} catch (Exception e) {
 
-		        throw new RuntimeException(
-		                "Error while creating PDF page header/footer",
-		                e);
-		    }
+				throw new RuntimeException("Error while creating PDF page header/footer", e);
+			}
 		}
 
 // =====================================================

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,5 +214,27 @@ public class Utility {
 			statusUpdated.put(testName, status);
 		}
 		return statusUpdated;
+	}
+	
+	public static String formatDateTime(String dateTime) {
+	    if (dateTime == null || dateTime.trim().isEmpty()) {
+	        return "";
+	    }
+
+	    try {
+	        DateTimeFormatter inputFormatter =
+	                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+	        DateTimeFormatter outputFormatter =
+	                DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+
+	        LocalDateTime dateTimeValue =
+	                LocalDateTime.parse(dateTime.trim(), inputFormatter);
+
+	        return dateTimeValue.format(outputFormatter);
+
+	    } catch (DateTimeParseException e) {
+	        return dateTime;
+	    }
 	}
 }

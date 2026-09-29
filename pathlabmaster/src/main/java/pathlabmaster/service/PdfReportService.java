@@ -46,6 +46,7 @@ import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.pojo.PdfResponse;
 import pathlabmaster.pojo.ReportMaster;
 import pathlabmaster.utility.Constants;
+import pathlabmaster.utility.Utility;
 
 @Service
 public class PdfReportService {
@@ -1108,6 +1109,12 @@ public class PdfReportService {
 		patientTable.setWidthPercentage(100);
 
 		patientTable.setWidths(new float[] { 15, 50, 15, 30 });
+		String space = "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+		if(patientDetails.getGender().equalsIgnoreCase("female")){
+			space = "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+		}else if(patientDetails.getGender().equalsIgnoreCase("other")) {
+			space = "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+		}
 
 		addPatientCell(patientTable, "Reg No", boldFont, Element.ALIGN_LEFT);
 
@@ -1116,18 +1123,18 @@ public class PdfReportService {
 		addPatientCell(patientTable, "Sex / Age", boldFont, Element.ALIGN_LEFT);
 
 		addPatientCell(patientTable, ": " + safe(patientDetails.getGender()) + " / " + safe(patientDetails.getYear())
-				+ "Y\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0",
+				+ space,
 				boldFont, Element.ALIGN_RIGHT);
 
 		addPatientCell(patientTable, "Name", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(patientDetails.getFirstName()) + " "
+		addPatientCell(patientTable, ": " + safe(patientDetails.getPrefix()) + " "+safe(patientDetails.getFirstName()) + " "
 				+ safe(patientDetails.getMiddleName()) + " " + safe(patientDetails.getLastName()), boldFont,
 				Element.ALIGN_LEFT);
 
 		addPatientCell(patientTable, "Reg Date", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(patientDetails.getCreatedAt()), boldFont, Element.ALIGN_RIGHT);
+		addPatientCell(patientTable, ": " + safe(Utility.formatDateTime(patientDetails.getCreatedAt())), boldFont, Element.ALIGN_RIGHT);
 
 		addPatientCell(patientTable, "Referred Dr", boldFont, Element.ALIGN_LEFT);
 
@@ -1135,7 +1142,7 @@ public class PdfReportService {
 
 		addPatientCell(patientTable, "Report Date", boldFont, Element.ALIGN_LEFT);
 
-		addPatientCell(patientTable, ": " + safe(reportDetails.getCreatedAt()), boldFont, Element.ALIGN_RIGHT);
+		addPatientCell(patientTable, ": " + safe(Utility.formatDateTime(reportDetails.getCreatedAt())), boldFont, Element.ALIGN_RIGHT);
 
 		patientTable.addCell(createEmptyCell(4));
 

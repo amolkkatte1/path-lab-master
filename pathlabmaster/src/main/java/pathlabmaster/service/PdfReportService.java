@@ -436,19 +436,11 @@ public class PdfReportService {
 
 	    if (isQrRequired) {
 
-	        String qrUrl = Constants.SELF_BASE_URL_PROD
-	                + Constants.QR_CODE_URL.replaceFirst(
-	                        "\\{}",
-	                        String.valueOf(patientId))
-	                        .replaceFirst(
-	                                "\\{}",
-	                                reportIds)
-	                        .replaceFirst(
-	                                "\\{}",
-	                                String.valueOf(headerRequired))
-	                        .replaceFirst(
-	                                "\\{}",
-	                                String.valueOf(mdSignRequired));
+			String qrUrl = Constants.SELF_BASE_URL_PROD
+					+ Constants.QR_CODE_URL.replaceFirst("\\{}", String.valueOf(patientId))
+							.replaceFirst("\\{}", reportIds).replaceFirst("\\{}", String.valueOf(headerRequired))
+							.replaceFirst("\\{}", String.valueOf(mdSignRequired))
+							.replaceFirst("\\{}", String.valueOf(printGroup));
 
 	        qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
 	    }

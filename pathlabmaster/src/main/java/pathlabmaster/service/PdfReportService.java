@@ -1422,98 +1422,36 @@ public class PdfReportService {
 	// REFERENCE RANGE
 	// ============================================================
 
-	
-
 	private String getReferenceRange(ParameterDetails parameter) {
 
-	    BigDecimal lower = parameter.getLowerRange();
-	    BigDecimal upper = parameter.getUpperRange();
+	    BigDecimal lowerRange = parameter.getLowerRange();
+	    BigDecimal upperRange = parameter.getUpperRange();
 	    String parameterRange = parameter.getParameterRange();
 
-	    // =====================================================
-	    // LOWER + UPPER
-	    // =====================================================
-	    if (lower != null && upper != null) {
+	    boolean hasParameterRange = parameterRange != null && !parameterRange.isEmpty();
 
-	        String lowerStr;
-	        String upperStr;
+	    if (lowerRange != null && upperRange != null) {
+	        String lower = lowerRange.stripTrailingZeros().toPlainString();
+	        String upper = upperRange.stripTrailingZeros().toPlainString();
 
-	        // If either range has decimal places,
-	        // keep the same decimal precision for both
-	        if (lower.scale() > 0 || upper.scale() > 0) {
-
-	            int scale = Math.max(lower.scale(), upper.scale());
-
-	            lowerStr = lower.setScale(scale, RoundingMode.UNNECESSARY)
-	                    .toPlainString();
-
-	            upperStr = upper.setScale(scale, RoundingMode.UNNECESSARY)
-	                    .toPlainString();
-
-	        } else {
-
-	            // Large integer values are kept as normal numbers
-	            lowerStr = lower.toPlainString();
-	            upperStr = upper.toPlainString();
-
-	            // Only format single-digit positive ranges
-	            // Example: 1 - 3 => 01 - 03
-	            if (lower.compareTo(BigDecimal.ZERO) > 0
-	                    && lower.compareTo(BigDecimal.TEN) < 0
-	                    && upper.compareTo(BigDecimal.ZERO) > 0
-	                    && upper.compareTo(BigDecimal.TEN) < 0) {
-
-	                lowerStr = String.format("%02d", lower.intValue());
-	                upperStr = String.format("%02d", upper.intValue());
-	            }
+	        if (hasParameterRange) {
+	            return lower + " " + parameterRange + " " + upper;
 	        }
 
-	        return lowerStr + " - " + upperStr;
+	        return lower + " - " + upper;
 	    }
 
-	    // =====================================================
-	    // ONLY UPPER EXISTS
-	    // Example: parameterRange = "<", upper = 100
-	    // Result: < 100
-	    // =====================================================
-	    if (upper != null) {
-
-	        String upperStr = upper.stripTrailingZeros().toPlainString();
-
-	        if (parameterRange != null && !parameterRange.isBlank()) {
-	            return parameterRange.trim() + " " + upperStr;
-	        }
-
-	        return upperStr;
+	    if (upperRange != null && hasParameterRange) {
+	        return parameterRange + "  "
+	                + upperRange.stripTrailingZeros().toPlainString();
 	    }
 
-	    // =====================================================
-	    // ONLY LOWER EXISTS
-	    // Example: lower = 100, parameterRange = ">"
-	    // Result: 100 >
-	    // =====================================================
-	    if (lower != null) {
-
-	        String lowerStr = lower.stripTrailingZeros().toPlainString();
-
-	        if (parameterRange != null && !parameterRange.isBlank()) {
-	            return lowerStr + " " + parameterRange.trim();
-	        }
-
-	        return lowerStr;
-	    }
-
-	    // =====================================================
-	    // ONLY PARAMETER RANGE EXISTS
-	    // =====================================================
-	    if (parameterRange != null && !parameterRange.isBlank()) {
-	        return parameterRange.trim();
+	    if (hasParameterRange) {
+	        return parameterRange;
 	    }
 
 	    return "";
 	}
-	
-	
 
 	// ============================================================
 	// CALCULATE TEST HEIGHT

@@ -1433,8 +1433,9 @@ public class PdfReportService {
 	    if (lowerRange != null && upperRange != null) {
 	        String lower = lowerRange.stripTrailingZeros().toPlainString();
 	        String upper = upperRange.stripTrailingZeros().toPlainString();
-
-	        if (hasParameterRange) {
+	        if (hasParameterRange && parameterRange.equalsIgnoreCase("upto")) {
+	            return parameterRange + " " + upper;
+	        }else if (hasParameterRange) {
 	            return lower + " " + parameterRange + " " + upper;
 	        }
 

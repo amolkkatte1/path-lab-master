@@ -45,6 +45,10 @@ public class ReportService implements IReportService {
 	@Override
 	public Response registerReport(ReportRegistrationRequest reportRegistrationRequest) throws JsonMappingException, JsonProcessingException {
 		ReportMaster reportMaster = new ReportMaster();
+		ReportMaster reportMasterExisting = reportMasterRepo.findByPatientIdAndLabId(reportMaster.getPatientId(),reportMaster.getLabId());
+		if (reportMasterExisting != null) {
+			return new Response(ResponseStatus.success, 1, "Report Registration successfully", reportMasterExisting);
+		}
 		reportMaster.setReportId(Utility.generateId());
 		reportMaster.setUpdatedAt(Utility.getCurrentTime());
 		reportMaster.setCreatedAt(Utility.getCurrentTime());

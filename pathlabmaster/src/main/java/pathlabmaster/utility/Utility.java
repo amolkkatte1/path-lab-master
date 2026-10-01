@@ -15,7 +15,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pathlabmaster.pojo.ParameterDetails;
-
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 public class Utility {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -236,5 +238,25 @@ public class Utility {
 	    } catch (DateTimeParseException e) {
 	        return dateTime;
 	    }
+	}
+	public static boolean isWithinLastTwoSeconds(String createdAt) {
+
+	    DateTimeFormatter formatter =
+	            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+	    LocalDateTime createdDateTime =
+	            LocalDateTime.parse(createdAt, formatter);
+
+	    LocalDateTime currentDateTime =
+	            LocalDateTime.now();
+
+	    long milliseconds =
+	            Duration.between(createdDateTime, currentDateTime).toMillis();
+
+//	    System.out.println("Created At : " + createdDateTime);
+//	    System.out.println("Current At : " + currentDateTime);
+//	    System.out.println("Difference : " + milliseconds + " ms");
+
+	    return milliseconds >= 0 && milliseconds <= 2000;
 	}
 }

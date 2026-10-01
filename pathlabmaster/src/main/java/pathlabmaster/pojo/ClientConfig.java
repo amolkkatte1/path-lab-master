@@ -24,6 +24,9 @@ public class ClientConfig {
 	private boolean isQrCodeRequired;
 	private Integer qrCodeHorizantalPosition;
 	private Integer qrCodeVerticalPosition;
+	private Integer columnCount;
+	@JdbcTypeCode(SqlTypes.JSON)
+	private Map<String, Map<String,String>> testKeyMapping;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdAt;
@@ -104,13 +107,26 @@ public class ClientConfig {
 	public void setQrCodeVerticalPosition(Integer qrCodeVerticalPosition) {
 		this.qrCodeVerticalPosition = qrCodeVerticalPosition;
 	}
+	public Map<String, Map<String, String>> getTestKeyMapping() {
+		return testKeyMapping;
+	}
+	public void setTestKeyMapping(Map<String, Map<String, String>> testKeyMapping) {
+		this.testKeyMapping = testKeyMapping;
+	}
+	public Integer getColumnCount() {
+		return columnCount;
+	}
+	public void setColumnCount(Integer columnCount) {
+		this.columnCount = columnCount;
+	}
 	@Override
 	public String toString() {
 		return "ClientConfig [configId=" + configId + ", labId=" + labId + ", testKeys=" + testKeys
 				+ ", reportTopSpace=" + reportTopSpace + ", reportBottomSpace=" + reportBottomSpace
 				+ ", isQrCodeRequired=" + isQrCodeRequired + ", qrCodeHorizantalPosition=" + qrCodeHorizantalPosition
-				+ ", qrCodeVerticalPosition=" + qrCodeVerticalPosition + ", createdBy=" + createdBy + ", updatedBy="
-				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+				+ ", qrCodeVerticalPosition=" + qrCodeVerticalPosition + ", columnCount=" + columnCount
+				+ ", testKeyMapping=" + testKeyMapping + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
+				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
-
+	
 }

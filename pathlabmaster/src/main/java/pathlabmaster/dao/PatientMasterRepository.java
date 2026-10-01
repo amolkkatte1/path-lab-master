@@ -1,6 +1,7 @@
 package pathlabmaster.dao;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,4 +46,7 @@ public interface PatientMasterRepository extends JpaRepository<PatientMaster, Lo
 		);
 
 	PatientMaster findByPatientId(Long patientId);
+
+	Optional<PatientMaster> findFirstByLabIdAndFirstNameAndLastNameOrderByCreatedAtDesc(Long labId, String firstName,
+			String lastName);
 }

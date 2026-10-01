@@ -25,6 +25,11 @@ public class PatientService implements IPatientService {
 
 	@Override
 	public Response createPatient(PatientMaster patientDetails) {
+		Optional<PatientMaster> recentPatient = checkRecentPatient(patientDetails);
+
+		if (recentPatient.isPresent()) {
+			return new Response(ResponseStatus.success, 1, "Patient already created", recentPatient.get());
+		}
 		Optional<LabMaster> labMaster =  labRepo.findById(patientDetails.getLabId());
 		LabMaster lab = labMaster.get();
 		patientDetails.setPatientId(Utility.generateId());
@@ -132,5 +137,23 @@ public class PatientService implements IPatientService {
 
 		return new Response(ResponseStatus.success, 1, "Patient dashboard data fetched successfully",
 				dashboardResponse);
+	}
+	
+	private Optional<PatientMaster> checkRecentPatient(PatientMaster patientDetails) {
+
+	    Optional<PatientMaster> existingPatient =
+	            patientRepo.findFirstByLabIdAndFirstNameAndLastNameOrderByCreatedAtDesc(
+	                    patientDetails.getLabId(),
+	                    patientDetails.getFirstName(),
+	                    patientDetails.getLastName()
+	            );
+
+	    if (existingPatient.isPresent()
+	            && Utility.isWithinLastTwoSeconds(existingPatient.get().getCreatedAt())) {
+
+	        return existingPatient;
+	    }
+
+	    return Optional.empty();
 	}
 }

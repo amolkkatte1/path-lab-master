@@ -114,7 +114,7 @@ public class ReportService implements IReportService {
 		status1.put("a", 0);
 		status1.put("p", 0);
 		status1.put("s", 0);
-		Map<String,Integer> reportNames = new HashMap<>();
+		Map<String,Integer> reportNames = reportMaster.getReportNameList();
 		for(TestMaster test : reportRegistrationRequest.getTestList()) {
 			status1.put("i", Boolean.TRUE.equals(test.getIsImageUploadEnable())?1:0);
 			List<ParameterMaster> parameterMasterList = parameterRepo.findByParameterIdIn(Utility.getIds(test.getParameterList()));

@@ -13,11 +13,10 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-//                registry.addMapping("/**")
-//                        .allowedOrigins("http://localhost:5174","https://path-lab-master-frontend.vercel.app","http://localhost:3000","https://pathlabmaster.com")
-//                        .allowedMethods("*")
-//                        .allowCredentials(true);
-            	registry.addMapping("/**") .allowedOriginPatterns("*") .allowedMethods("*") .allowedHeaders("*") .allowCredentials(true);
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:5174","https://path-lab-master-frontend.vercel.app","http://localhost:3000","https://pathlabmaster.com")
+                        .allowedMethods("*")
+                        .allowCredentials(true);
             }
         };
     }

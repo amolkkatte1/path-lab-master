@@ -125,7 +125,7 @@ public class ReportRestController {
 			@RequestParam(required = false) Long doctorId) throws IOException {
 		byte[] pdf = pdfReportService.generatePdf(fromDate, toDate, labId, firstName, lastName, patientId, doctorName,
 				doctorId);
-		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=patient-report.pdf")
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=patient-report.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdf);
 	}
 	

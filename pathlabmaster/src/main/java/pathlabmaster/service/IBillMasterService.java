@@ -14,4 +14,6 @@ public interface IBillMasterService {
 	Response updateBillMaster(BillMaster BillMasterDetails);
 
 	Response getBillMaster(Long labId);
+
+	Response getBillMasterByLabIdAndPatientId(Long labId, Long patientId);
 }

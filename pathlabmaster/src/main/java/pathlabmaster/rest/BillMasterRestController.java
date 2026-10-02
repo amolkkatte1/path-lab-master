@@ -53,6 +53,14 @@ public class BillMasterRestController {
 		return response;
 	}
 	
+	@GetMapping("/get/labId/{labId}/patientId/{patientId}")
+	public Response getBillMasterByLabIdAndPatientId(@PathVariable Long labId,@PathVariable Long patientId) throws JsonProcessingException {
+		System.out.println("Get getDoctorByLabId Api Started : " + labId);
+		Response response = billMasterService.getBillMasterByLabIdAndPatientId(labId,patientId);
+		System.out.println("Get getDoctorByLabId Api Completed : " + Utility.toJsonString(response));
+		return response;
+	}
+	
 	@GetMapping("/list")
 	public Response getBillMasterList() throws JsonProcessingException{
 		System.out.println("Get BillMaster List Api Started ");

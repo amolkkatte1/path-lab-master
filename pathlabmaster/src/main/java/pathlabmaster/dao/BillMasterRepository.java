@@ -23,4 +23,6 @@ public interface BillMasterRepository extends JpaRepository<BillMaster, Long> {
 	List<BillMaster> filterBills(@Param("labId") Long labId, @Param("fromDate") String fromDate,
 			@Param("toDate") String toDate);
 
+	BillMaster findByPatientIdAndLabId(Long patientId, Long labId);
+
 }

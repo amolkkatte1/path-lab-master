@@ -1,4 +1,3 @@
-
 package pathlabmaster.service;
 
 import java.io.ByteArrayOutputStream;
@@ -109,10 +108,7 @@ public class ExcelReportService {
 
 		/*
 		 * ============================================================ CREATE LOOKUP
-		 * MAPS
-		 *
-		 * HashMap is faster and simpler than creating maps using streams for a large
-		 * report. ============================================================
+		 * MAPS ============================================================
 		 */
 
 		Map<Long, DoctorMaster> doctorMap = new HashMap<>();
@@ -162,6 +158,7 @@ public class ExcelReportService {
 			Font headerFont = workbook.createFont();
 
 			headerFont.setBold(true);
+
 			headerFont.setFontHeightInPoints((short) 11);
 
 			/*
@@ -172,12 +169,17 @@ public class ExcelReportService {
 			CellStyle headerStyle = workbook.createCellStyle();
 
 			headerStyle.setFont(headerFont);
+
 			headerStyle.setAlignment(HorizontalAlignment.CENTER);
+
 			headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
 			headerStyle.setBorderTop(BorderStyle.THIN);
+
 			headerStyle.setBorderBottom(BorderStyle.THIN);
+
 			headerStyle.setBorderLeft(BorderStyle.THIN);
+
 			headerStyle.setBorderRight(BorderStyle.THIN);
 
 			/*
@@ -190,16 +192,16 @@ public class ExcelReportService {
 			dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
 			dataStyle.setBorderTop(BorderStyle.THIN);
+
 			dataStyle.setBorderBottom(BorderStyle.THIN);
+
 			dataStyle.setBorderLeft(BorderStyle.THIN);
+
 			dataStyle.setBorderRight(BorderStyle.THIN);
 
 			/*
 			 * ======================================================== REGISTRATION NUMBER
-			 * STYLE
-			 *
-			 * Reg No is an identifier, so keep it as TEXT.
-			 * ========================================================
+			 * STYLE ========================================================
 			 */
 
 			CellStyle regNoStyle = workbook.createCellStyle();
@@ -209,8 +211,11 @@ public class ExcelReportService {
 			regNoStyle.setAlignment(HorizontalAlignment.LEFT);
 
 			regNoStyle.setBorderTop(BorderStyle.THIN);
+
 			regNoStyle.setBorderBottom(BorderStyle.THIN);
+
 			regNoStyle.setBorderLeft(BorderStyle.THIN);
+
 			regNoStyle.setBorderRight(BorderStyle.THIN);
 
 			/*
@@ -223,11 +228,112 @@ public class ExcelReportService {
 			amountStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
 			amountStyle.setBorderTop(BorderStyle.THIN);
+
 			amountStyle.setBorderBottom(BorderStyle.THIN);
+
 			amountStyle.setBorderLeft(BorderStyle.THIN);
+
 			amountStyle.setBorderRight(BorderStyle.THIN);
 
 			amountStyle.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+
+			/*
+			 * ======================================================== SUMMARY LABEL STYLE
+			 * ========================================================
+			 */
+
+			Font summaryLabelFont = workbook.createFont();
+
+			summaryLabelFont.setBold(true);
+
+			summaryLabelFont.setFontHeightInPoints((short) 10);
+
+			CellStyle summaryLabelStyle = workbook.createCellStyle();
+
+			summaryLabelStyle.setFont(summaryLabelFont);
+
+			summaryLabelStyle.setAlignment(HorizontalAlignment.LEFT);
+
+			summaryLabelStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+			summaryLabelStyle.setBorderTop(BorderStyle.THIN);
+
+			summaryLabelStyle.setBorderBottom(BorderStyle.THIN);
+
+			summaryLabelStyle.setBorderLeft(BorderStyle.THIN);
+
+			summaryLabelStyle.setBorderRight(BorderStyle.THIN);
+
+			/*
+			 * ======================================================== SUMMARY VALUE STYLE
+			 * ========================================================
+			 */
+
+			CellStyle summaryValueStyle = workbook.createCellStyle();
+
+			summaryValueStyle.setAlignment(HorizontalAlignment.RIGHT);
+
+			summaryValueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+			summaryValueStyle.setBorderTop(BorderStyle.THIN);
+
+			summaryValueStyle.setBorderBottom(BorderStyle.THIN);
+
+			summaryValueStyle.setBorderLeft(BorderStyle.THIN);
+
+			summaryValueStyle.setBorderRight(BorderStyle.THIN);
+
+			summaryValueStyle.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+
+			/*
+			 * ======================================================== SUMMARY TOTAL LABEL
+			 * STYLE ========================================================
+			 */
+
+			Font summaryTotalFont = workbook.createFont();
+
+			summaryTotalFont.setBold(true);
+
+			summaryTotalFont.setFontHeightInPoints((short) 10);
+
+			CellStyle summaryTotalLabelStyle = workbook.createCellStyle();
+
+			summaryTotalLabelStyle.setFont(summaryTotalFont);
+
+			summaryTotalLabelStyle.setAlignment(HorizontalAlignment.LEFT);
+
+			summaryTotalLabelStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+			summaryTotalLabelStyle.setBorderTop(BorderStyle.THIN);
+
+			summaryTotalLabelStyle.setBorderBottom(BorderStyle.THIN);
+
+			summaryTotalLabelStyle.setBorderLeft(BorderStyle.THIN);
+
+			summaryTotalLabelStyle.setBorderRight(BorderStyle.THIN);
+
+			/*
+			 * ======================================================== SUMMARY TOTAL VALUE
+			 * STYLE ========================================================
+			 */
+
+			CellStyle summaryTotalValueStyle = workbook.createCellStyle();
+
+			summaryTotalValueStyle.setFont(summaryTotalFont);
+
+			summaryTotalValueStyle.setAlignment(HorizontalAlignment.RIGHT);
+
+			summaryTotalValueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+			summaryTotalValueStyle.setBorderTop(BorderStyle.THIN);
+
+			summaryTotalValueStyle.setBorderBottom(BorderStyle.THIN);
+
+			summaryTotalValueStyle.setBorderLeft(BorderStyle.THIN);
+
+			summaryTotalValueStyle.setBorderRight(BorderStyle.THIN);
+
+			summaryTotalValueStyle.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
 
 			/*
 			 * ======================================================== GET LAB NAME
@@ -258,9 +364,10 @@ public class ExcelReportService {
 			Cell labNameCell = labNameRow.createCell(0);
 
 			labNameCell.setCellValue(labName);
+
 			labNameCell.setCellStyle(headerStyle);
 
-			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 9));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 10));
 
 			/*
 			 * ======================================================== DATE RANGE ROW
@@ -277,9 +384,10 @@ public class ExcelReportService {
 					+ (toDate != null ? toDate : "");
 
 			dateCell.setCellValue(dateRange);
+
 			dateCell.setCellStyle(headerStyle);
 
-			sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 9));
+			sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 10));
 
 			/*
 			 * ======================================================== TABLE HEADER
@@ -290,16 +398,16 @@ public class ExcelReportService {
 
 			header.setHeightInPoints(25);
 
-			String[] headers = {
-
-					"Sr No", "Registration Date", "Reg. No", "Patient Name", "Test List", "Referred Doctor Name",
-					"Total Amount", "Collected Amount", "Collected By Doctor", "Sharing" };
+			String[] headers = { "Sr No", "Registration Date", "Reg. No", "Patient Name", "Test List",
+					"Referred Doctor Name", "Total Amount", "Discount", "Collected Amount", "Collected By Doctor",
+					"Sharing" };
 
 			for (int i = 0; i < headers.length; i++) {
 
 				Cell cell = header.createCell(i);
 
 				cell.setCellValue(headers[i]);
+
 				cell.setCellStyle(headerStyle);
 			}
 
@@ -316,6 +424,8 @@ public class ExcelReportService {
 			 */
 
 			BigDecimal grandTotalAmount = BigDecimal.ZERO;
+
+			BigDecimal grandDiscount = BigDecimal.ZERO;
 
 			BigDecimal grandCollectedAmount = BigDecimal.ZERO;
 
@@ -407,8 +517,6 @@ public class ExcelReportService {
 
 				/*
 				 * ==================================================== TEST LIST
-				 *
-				 * Faster than keySet().toString()
 				 * ====================================================
 				 */
 
@@ -427,6 +535,7 @@ public class ExcelReportService {
 				String doctorName1 = patient.getDoctorName();
 
 				if (doctorName1 == null) {
+
 					doctorName1 = "";
 				}
 
@@ -438,7 +547,20 @@ public class ExcelReportService {
 				BigDecimal totalAmount = bill.getTotalAmount();
 
 				if (totalAmount == null) {
+
 					totalAmount = BigDecimal.ZERO;
+				}
+
+				/*
+				 * ==================================================== DISCOUNT
+				 * ====================================================
+				 */
+
+				BigDecimal discount = bill.getDiscount();
+
+				if (discount == null) {
+
+					discount = BigDecimal.ZERO;
 				}
 
 				/*
@@ -449,6 +571,7 @@ public class ExcelReportService {
 				BigDecimal collectedAmount = bill.getPaymentReceived();
 
 				if (collectedAmount == null) {
+
 					collectedAmount = BigDecimal.ZERO;
 				}
 
@@ -460,6 +583,7 @@ public class ExcelReportService {
 				BigDecimal collectedByDoctor = bill.getCollectedByDoctor();
 
 				if (collectedByDoctor == null) {
+
 					collectedByDoctor = BigDecimal.ZERO;
 				}
 
@@ -486,6 +610,8 @@ public class ExcelReportService {
 
 				/*
 				 * ==================================================== SHARING CALCULATION
+				 *
+				 * Sharing = (Collected Amount + Collected By Doctor) * Sharing Percentage / 100
 				 * ====================================================
 				 */
 
@@ -493,7 +619,9 @@ public class ExcelReportService {
 
 				if (doctorSharingPercentage.compareTo(BigDecimal.ZERO) > 0) {
 
-					sharing = collectedAmount.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+					BigDecimal sharingBase = collectedAmount.add(collectedByDoctor);
+
+					sharing = sharingBase.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
 							.multiply(doctorSharingPercentage).setScale(2, RoundingMode.HALF_UP);
 				}
 
@@ -512,6 +640,7 @@ public class ExcelReportService {
 				Cell srCell = row.createCell(0);
 
 				srCell.setCellValue(srNo);
+
 				srCell.setCellStyle(dataStyle);
 
 				/*
@@ -527,8 +656,6 @@ public class ExcelReportService {
 
 				/*
 				 * ==================================================== 3. REG NO
-				 *
-				 * IMPORTANT: Store as String to prevent scientific notation.
 				 * ====================================================
 				 */
 
@@ -583,33 +710,44 @@ public class ExcelReportService {
 				totalCell.setCellStyle(amountStyle);
 
 				/*
-				 * ==================================================== 8. COLLECTED AMOUNT
+				 * ==================================================== 8. DISCOUNT
 				 * ====================================================
 				 */
 
-				Cell collectedCell = row.createCell(7);
+				Cell discountCell = row.createCell(7);
+
+				discountCell.setCellValue(discount.doubleValue());
+
+				discountCell.setCellStyle(amountStyle);
+
+				/*
+				 * ==================================================== 9. COLLECTED AMOUNT
+				 * ====================================================
+				 */
+
+				Cell collectedCell = row.createCell(8);
 
 				collectedCell.setCellValue(collectedAmount.doubleValue());
 
 				collectedCell.setCellStyle(amountStyle);
 
 				/*
-				 * ==================================================== 9. COLLECTED BY DOCTOR
+				 * ==================================================== 10. COLLECTED BY DOCTOR
 				 * ====================================================
 				 */
 
-				Cell collectedByCell = row.createCell(8);
+				Cell collectedByCell = row.createCell(9);
 
 				collectedByCell.setCellValue(collectedByDoctor.doubleValue());
 
 				collectedByCell.setCellStyle(amountStyle);
 
 				/*
-				 * ==================================================== 10. SHARING
+				 * ==================================================== 11. SHARING
 				 * ====================================================
 				 */
 
-				Cell sharingCell = row.createCell(9);
+				Cell sharingCell = row.createCell(10);
 
 				sharingCell.setCellValue(sharing.doubleValue());
 
@@ -622,6 +760,8 @@ public class ExcelReportService {
 
 				grandTotalAmount = grandTotalAmount.add(totalAmount);
 
+				grandDiscount = grandDiscount.add(discount);
+
 				grandCollectedAmount = grandCollectedAmount.add(collectedAmount);
 
 				grandCollectedByDoctor = grandCollectedByDoctor.add(collectedByDoctor);
@@ -631,8 +771,6 @@ public class ExcelReportService {
 
 			/*
 			 * ======================================================== CREATE EXCEL TABLE
-			 *
-			 * Table includes:
 			 *
 			 * Header row = row 2 First data row = row 3 Last data row = rowNumber - 1
 			 *
@@ -647,7 +785,7 @@ public class ExcelReportService {
 				int lastDataRowIndex = rowNumber - 1;
 
 				AreaReference areaReference = new AreaReference(new CellReference(headerRowIndex, 0),
-						new CellReference(lastDataRowIndex, 9), SpreadsheetVersion.EXCEL2007);
+						new CellReference(lastDataRowIndex, 10), SpreadsheetVersion.EXCEL2007);
 
 				XSSFTable table = sheet.createTable(areaReference);
 
@@ -676,7 +814,7 @@ public class ExcelReportService {
 			/*
 			 * ======================================================== GRAND TOTAL ROW
 			 *
-			 * This is intentionally outside the Excel table.
+			 * This is outside the Excel table.
 			 * ========================================================
 			 */
 
@@ -686,7 +824,7 @@ public class ExcelReportService {
 			 * TOTAL LABEL
 			 */
 
-			Cell totalLabel = totalRow.createCell(4);
+			Cell totalLabel = totalRow.createCell(5);
 
 			totalLabel.setCellValue("TOTAL");
 
@@ -703,10 +841,20 @@ public class ExcelReportService {
 			grandTotalCell.setCellStyle(amountStyle);
 
 			/*
+			 * TOTAL DISCOUNT
+			 */
+
+			Cell grandDiscountCell = totalRow.createCell(7);
+
+			grandDiscountCell.setCellValue(grandDiscount.doubleValue());
+
+			grandDiscountCell.setCellStyle(amountStyle);
+
+			/*
 			 * TOTAL COLLECTED AMOUNT
 			 */
 
-			Cell grandCollectedCell = totalRow.createCell(7);
+			Cell grandCollectedCell = totalRow.createCell(8);
 
 			grandCollectedCell.setCellValue(grandCollectedAmount.doubleValue());
 
@@ -716,7 +864,7 @@ public class ExcelReportService {
 			 * TOTAL COLLECTED BY DOCTOR
 			 */
 
-			Cell grandCollectedByDoctorCell = totalRow.createCell(8);
+			Cell grandCollectedByDoctorCell = totalRow.createCell(9);
 
 			grandCollectedByDoctorCell.setCellValue(grandCollectedByDoctor.doubleValue());
 
@@ -726,29 +874,207 @@ public class ExcelReportService {
 			 * TOTAL SHARING
 			 */
 
-			Cell grandSharingCell = totalRow.createCell(9);
+			Cell grandSharingCell = totalRow.createCell(10);
 
 			grandSharingCell.setCellValue(grandSharing.doubleValue());
 
 			grandSharingCell.setCellStyle(amountStyle);
 
 			/*
-			 * ======================================================== COLUMN WIDTHS
+			 * ======================================================== SUMMARY CALCULATIONS
+			 * ========================================================
+			 */
+
+			BigDecimal totalAfterDiscount = grandTotalAmount.subtract(grandDiscount);
+
+			BigDecimal sharingToPay = grandSharing.subtract(grandCollectedByDoctor);
+
+			/*
+			 * Prevent negative values.
+			 */
+
+			if (totalAfterDiscount.compareTo(BigDecimal.ZERO) < 0) {
+
+				totalAfterDiscount = BigDecimal.ZERO;
+			}
+
+			if (sharingToPay.compareTo(BigDecimal.ZERO) < 0) {
+
+				sharingToPay = BigDecimal.ZERO;
+			}
+
+			/*
+			 * ======================================================== SUMMARY START
+			 * ========================================================
+			 */
+
+			// Add one blank row before summary
+			rowNumber++;
+
+			/*
+			 * ======================================================== SUMMARY TITLE
+			 * ========================================================
+			 */
+
+			Row summaryTitleRow = sheet.createRow(rowNumber++);
+
+			Cell summaryTitleCell = summaryTitleRow.createCell(5);
+
+			summaryTitleCell.setCellValue("SUMMARY");
+
+			summaryTitleCell.setCellStyle(summaryTotalLabelStyle);
+
+			/*
+			 * Merge SUMMARY title across columns 5 and 6
+			 */
+
+			sheet.addMergedRegion(new CellRangeAddress(summaryTitleRow.getRowNum(), summaryTitleRow.getRowNum(), 5, 6));
+
+			/*
+			 * ======================================================== 1. TOTAL AMOUNT TO
+			 * BE COLLECTED ========================================================
+			 */
+
+			Row summaryRow1 = sheet.createRow(rowNumber++);
+
+			Cell summaryLabel1 = summaryRow1.createCell(5);
+
+			summaryLabel1.setCellValue("Total Amount Need To Be collected");
+
+			summaryLabel1.setCellStyle(summaryLabelStyle);
+
+			Cell summaryValue1 = summaryRow1.createCell(6);
+
+			summaryValue1.setCellValue(grandTotalAmount.doubleValue());
+
+			summaryValue1.setCellStyle(summaryValueStyle);
+
+			/*
+			 * ======================================================== 2. DISCOUNT
+			 * ========================================================
+			 */
+
+			Row summaryRow2 = sheet.createRow(rowNumber++);
+
+			Cell summaryLabel2 = summaryRow2.createCell(5);
+
+			summaryLabel2.setCellValue("Discount");
+
+			summaryLabel2.setCellStyle(summaryLabelStyle);
+
+			Cell summaryValue2 = summaryRow2.createCell(6);
+
+			summaryValue2.setCellValue(grandDiscount.doubleValue());
+
+			summaryValue2.setCellStyle(summaryValueStyle);
+
+			/*
+			 * ======================================================== 3. TOTAL
 			 *
-			 * Do NOT use autoSizeColumn() because it can make large Excel reports
-			 * considerably slower. ========================================================
+			 * grandTotalAmount - grandDiscount
+			 * ========================================================
+			 */
+
+			Row summaryRow3 = sheet.createRow(rowNumber++);
+
+			Cell summaryLabel3 = summaryRow3.createCell(5);
+
+			summaryLabel3.setCellValue("Total");
+
+			summaryLabel3.setCellStyle(summaryTotalLabelStyle);
+
+			Cell summaryValue3 = summaryRow3.createCell(6);
+
+			summaryValue3.setCellValue(totalAfterDiscount.doubleValue());
+
+			summaryValue3.setCellStyle(summaryTotalValueStyle);
+
+			/*
+			 * ======================================================== 4. AMOUNT COLLECTED
+			 * ========================================================
+			 */
+
+			Row summaryRow4 = sheet.createRow(rowNumber++);
+
+			Cell summaryLabel4 = summaryRow4.createCell(5);
+
+			summaryLabel4.setCellValue("Amount Collected");
+
+			summaryLabel4.setCellStyle(summaryLabelStyle);
+
+			Cell summaryValue4 = summaryRow4.createCell(6);
+
+			summaryValue4.setCellValue(grandCollectedAmount.doubleValue());
+
+			summaryValue4.setCellStyle(summaryValueStyle);
+
+			/*
+			 * ======================================================== 5. AMOUNT COLLECTED
+			 * BY DR ========================================================
+			 */
+
+			Row summaryRow5 = sheet.createRow(rowNumber++);
+
+			Cell summaryLabel5 = summaryRow5.createCell(5);
+
+			summaryLabel5.setCellValue("Amount Collected By Dr");
+
+			summaryLabel5.setCellStyle(summaryLabelStyle);
+
+			Cell summaryValue5 = summaryRow5.createCell(6);
+
+			summaryValue5.setCellValue(grandCollectedByDoctor.doubleValue());
+
+			summaryValue5.setCellStyle(summaryValueStyle);
+
+			/*
+			 * ======================================================== 6. SHARING NEED TO
+			 * PAY
+			 *
+			 * grandSharing - grandCollectedByDoctor
+			 * ========================================================
+			 */
+
+			Row summaryRow6 = sheet.createRow(rowNumber++);
+
+			Cell summaryLabel6 = summaryRow6.createCell(5);
+
+			summaryLabel6.setCellValue("Sharing Need To Pay");
+
+			summaryLabel6.setCellStyle(summaryTotalLabelStyle);
+
+			Cell summaryValue6 = summaryRow6.createCell(6);
+
+			summaryValue6.setCellValue(sharingToPay.doubleValue());
+
+			summaryValue6.setCellStyle(summaryTotalValueStyle);
+
+			/*
+			 * ======================================================== COLUMN WIDTHS
+			 * ========================================================
 			 */
 
 			sheet.setColumnWidth(0, 3000);
+
 			sheet.setColumnWidth(1, 6000);
+
 			sheet.setColumnWidth(2, 5500);
+
 			sheet.setColumnWidth(3, 9000);
+
 			sheet.setColumnWidth(4, 22000);
+
 			sheet.setColumnWidth(5, 10000);
+
 			sheet.setColumnWidth(6, 5000);
-			sheet.setColumnWidth(7, 6000);
-			sheet.setColumnWidth(8, 7000);
-			sheet.setColumnWidth(9, 5000);
+
+			sheet.setColumnWidth(7, 5000);
+
+			sheet.setColumnWidth(8, 6000);
+
+			sheet.setColumnWidth(9, 7000);
+
+			sheet.setColumnWidth(10, 5000);
 
 			/*
 			 * ======================================================== FREEZE TOP 3 ROWS

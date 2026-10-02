@@ -103,6 +103,10 @@ public class PdfReportService {
 			doctorList = List.of();
 		}
 
+		// ============================================================
+		// DOCTOR MAP
+		// ============================================================
+
 		Map<Long, DoctorMaster> doctorMap = new HashMap<>();
 
 		for (DoctorMaster doctor : doctorList) {
@@ -112,6 +116,10 @@ public class PdfReportService {
 				doctorMap.putIfAbsent(doctor.getDoctorId(), doctor);
 			}
 		}
+
+		// ============================================================
+		// BILL MAP
+		// ============================================================
 
 		Map<Long, BillMaster> billMap = new HashMap<>();
 
@@ -123,6 +131,10 @@ public class PdfReportService {
 			}
 		}
 
+		// ============================================================
+		// REPORT MAP
+		// ============================================================
+
 		Map<Long, ReportMaster> reportMap = new HashMap<>();
 
 		for (ReportMaster report : reportMasterList) {
@@ -132,6 +144,10 @@ public class PdfReportService {
 				reportMap.putIfAbsent(report.getPatientId(), report);
 			}
 		}
+
+		// ============================================================
+		// LAB NAME
+		// ============================================================
 
 		String labName = "";
 
@@ -145,6 +161,10 @@ public class PdfReportService {
 			labName = "Lab Report";
 		}
 
+		// ============================================================
+		// PDF
+		// ============================================================
+
 		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
 			Document document = new Document(PageSize.A4, 15, 15, 15, 15);
@@ -152,6 +172,10 @@ public class PdfReportService {
 			PdfWriter.getInstance(document, outputStream);
 
 			document.open();
+
+			// ========================================================
+			// FONTS
+			// ========================================================
 
 			Font labNameFont = new Font(Font.HELVETICA, 14, Font.BOLD);
 
@@ -163,6 +187,18 @@ public class PdfReportService {
 
 			Font totalFont = new Font(Font.HELVETICA, 6, Font.BOLD);
 
+			Font summaryHeaderFont = new Font(Font.HELVETICA, 8, Font.BOLD);
+
+			Font summaryLabelFont = new Font(Font.HELVETICA, 8, Font.BOLD);
+
+			Font summaryValueFont = new Font(Font.HELVETICA, 8, Font.NORMAL);
+
+			Font summaryTotalFont = new Font(Font.HELVETICA, 9, Font.BOLD);
+
+			// ========================================================
+			// LAB NAME
+			// ========================================================
+
 			Paragraph labParagraph = new Paragraph(labName, labNameFont);
 
 			labParagraph.setAlignment(Element.ALIGN_CENTER);
@@ -170,6 +206,10 @@ public class PdfReportService {
 			labParagraph.setSpacingAfter(3);
 
 			document.add(labParagraph);
+
+			// ========================================================
+			// DATE RANGE
+			// ========================================================
 
 			String dateRange = "From Date: " + (fromDate != null ? fromDate : "") + "    To Date: "
 					+ (toDate != null ? toDate : "");
@@ -182,14 +222,35 @@ public class PdfReportService {
 
 			document.add(dateParagraph);
 
-			PdfPTable table = new PdfPTable(10);
+			// ============================================================
+			// PDF TABLE
+			// ============================================================
+			//
+			// 11 Columns:
+			//
+			// 1. Sr No
+			// 2. Registration Date
+			// 3. Reg. No
+			// 4. Patient Name
+			// 5. Test List
+			// 6. Referred Doctor Name
+			// 7. Total Amount
+			// 8. Discount
+			// 9. Collected Amount
+			// 10. Collected By Doctor
+			// 11. Sharing
+			//
+			// ============================================================
+
+			PdfPTable table = new PdfPTable(11);
 
 			table.setWidthPercentage(100);
 
-			table.setWidths(new float[] { 4f, 8f, 10f, 11f, 22f, 13f, 7f, 8f, 9f, 8f });
+			table.setWidths(new float[] { 4f, 8f, 11f, 11f, 22f, 13f, 7f, 7f, 8f, 8f, 8f });
 
 			String[] headers = { "Sr No", "Registration Date", "Reg. No", "Patient Name", "Test List",
-					"Referred Doctor Name", "Total Amount", "Collected Amount", "Collected By Doctor", "Sharing" };
+					"Referred Doctor Name", "Total Amount", "Discount", "Collected Amount", "Collected By Doctor",
+					"Sharing" };
 
 			for (String header : headers) {
 
@@ -208,7 +269,13 @@ public class PdfReportService {
 
 			table.setHeaderRows(1);
 
+			// ============================================================
+			// GRAND TOTALS
+			// ============================================================
+
 			BigDecimal grandTotalAmount = BigDecimal.ZERO;
+
+			BigDecimal grandDiscount = BigDecimal.ZERO;
 
 			BigDecimal grandCollectedAmount = BigDecimal.ZERO;
 
@@ -217,6 +284,10 @@ public class PdfReportService {
 			BigDecimal grandCollectedByDoctor = BigDecimal.ZERO;
 
 			int srNo = 1;
+
+			// ============================================================
+			// PATIENT LOOP
+			// ============================================================
 
 			for (PatientMaster patient : patientMasterList) {
 
@@ -230,17 +301,29 @@ public class PdfReportService {
 					continue;
 				}
 
+				// ========================================================
+				// GET REPORT
+				// ========================================================
+
 				ReportMaster report = reportMap.get(currentPatientId);
 
 				if (report == null) {
 					continue;
 				}
 
+				// ========================================================
+				// GET BILL
+				// ========================================================
+
 				BillMaster bill = billMap.get(currentPatientId);
 
 				if (bill == null) {
 					continue;
 				}
+
+				// ========================================================
+				// REGISTRATION DATE
+				// ========================================================
 
 				String registrationDate = "";
 
@@ -250,6 +333,10 @@ public class PdfReportService {
 
 					registrationDate = createdAt.substring(0, 10);
 				}
+
+				// ========================================================
+				// PATIENT NAME
+				// ========================================================
 
 				String patientName = "";
 
@@ -261,11 +348,16 @@ public class PdfReportService {
 				if (patient.getLastName() != null && !patient.getLastName().isBlank()) {
 
 					if (!patientName.isBlank()) {
+
 						patientName += " ";
 					}
 
 					patientName += patient.getLastName();
 				}
+
+				// ========================================================
+				// TEST LIST
+				// ========================================================
 
 				String testList = "";
 
@@ -274,29 +366,64 @@ public class PdfReportService {
 					testList = String.join(", ", report.getReportNameList().keySet());
 				}
 
+				// ========================================================
+				// DOCTOR NAME
+				// ========================================================
+
 				String doctorName1 = patient.getDoctorName();
 
 				if (doctorName1 == null) {
+
 					doctorName1 = "";
 				}
+
+				// ========================================================
+				// TOTAL AMOUNT
+				// ========================================================
 
 				BigDecimal totalAmount = bill.getTotalAmount();
 
 				if (totalAmount == null) {
+
 					totalAmount = BigDecimal.ZERO;
 				}
+
+				// ========================================================
+				// DISCOUNT
+				// ========================================================
+
+				BigDecimal discount = bill.getDiscount();
+
+				if (discount == null) {
+
+					discount = BigDecimal.ZERO;
+				}
+
+				// ========================================================
+				// COLLECTED AMOUNT
+				// ========================================================
 
 				BigDecimal collectedAmount = bill.getPaymentReceived();
 
 				if (collectedAmount == null) {
+
 					collectedAmount = BigDecimal.ZERO;
 				}
+
+				// ========================================================
+				// COLLECTED BY DOCTOR
+				// ========================================================
 
 				BigDecimal collectedByDoctor = bill.getCollectedByDoctor();
 
 				if (collectedByDoctor == null) {
+
 					collectedByDoctor = BigDecimal.ZERO;
 				}
+
+				// ========================================================
+				// DOCTOR SHARING PERCENTAGE
+				// ========================================================
 
 				Float sharingPercentage = 0.0f;
 
@@ -316,11 +443,25 @@ public class PdfReportService {
 
 				BigDecimal doctorSharingPercentage = BigDecimal.valueOf(sharingPercentage.doubleValue());
 
+				// ========================================================
+				// SHARING CALCULATION
+				//
+				// Sharing =
+				// (Collected Amount + Collected By Doctor)
+				// * Sharing Percentage / 100
+				// ========================================================
+
 				if (doctorSharingPercentage.compareTo(BigDecimal.ZERO) > 0) {
 
-					sharing = collectedAmount.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+					BigDecimal sharingBase = collectedAmount.add(collectedByDoctor);
+
+					sharing = sharingBase.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
 							.multiply(doctorSharingPercentage).setScale(2, RoundingMode.HALF_UP);
 				}
+
+				// ========================================================
+				// ADD DATA TO TABLE
+				// ========================================================
 
 				addCell(table, String.valueOf(srNo++), dataFont, Element.ALIGN_CENTER);
 
@@ -334,15 +475,28 @@ public class PdfReportService {
 
 				addCell(table, doctorName1, dataFont, Element.ALIGN_LEFT);
 
+				// Total Amount
 				addCell(table, formatAmount(totalAmount), dataFont, Element.ALIGN_RIGHT);
 
+				// Discount
+				addCell(table, formatAmount(discount), dataFont, Element.ALIGN_RIGHT);
+
+				// Collected Amount
 				addCell(table, formatAmount(collectedAmount), dataFont, Element.ALIGN_RIGHT);
 
+				// Collected By Doctor
 				addCell(table, formatAmount(collectedByDoctor), dataFont, Element.ALIGN_RIGHT);
 
+				// Sharing
 				addCell(table, formatAmount(sharing), dataFont, Element.ALIGN_RIGHT);
 
+				// ========================================================
+				// GRAND TOTAL CALCULATION
+				// ========================================================
+
 				grandTotalAmount = grandTotalAmount.add(totalAmount);
+
+				grandDiscount = grandDiscount.add(discount);
 
 				grandCollectedAmount = grandCollectedAmount.add(collectedAmount);
 
@@ -350,6 +504,10 @@ public class PdfReportService {
 
 				grandSharing = grandSharing.add(sharing);
 			}
+
+			// ============================================================
+			// TOTAL ROW
+			// ============================================================
 
 			PdfPCell totalLabelCell = new PdfPCell(new Phrase("TOTAL", totalFont));
 
@@ -365,15 +523,113 @@ public class PdfReportService {
 
 			table.addCell(totalLabelCell);
 
+			// Total Amount
 			addCell(table, formatAmount(grandTotalAmount), totalFont, Element.ALIGN_RIGHT);
 
+			// Total Discount
+			addCell(table, formatAmount(grandDiscount), totalFont, Element.ALIGN_RIGHT);
+
+			// Total Collected Amount
 			addCell(table, formatAmount(grandCollectedAmount), totalFont, Element.ALIGN_RIGHT);
 
+			// Total Collected By Doctor
 			addCell(table, formatAmount(grandCollectedByDoctor), totalFont, Element.ALIGN_RIGHT);
 
+			// Total Sharing
 			addCell(table, formatAmount(grandSharing), totalFont, Element.ALIGN_RIGHT);
 
 			document.add(table);
+
+			// ============================================================
+			// SUMMARY CALCULATIONS
+			// ============================================================
+
+			BigDecimal totalAfterDiscount = grandTotalAmount.subtract(grandDiscount);
+
+			BigDecimal sharingToPay = grandSharing.subtract(grandCollectedByDoctor);
+
+			// Prevent negative values if required
+			if (totalAfterDiscount.compareTo(BigDecimal.ZERO) < 0) {
+
+				totalAfterDiscount = BigDecimal.ZERO;
+			}
+
+			if (sharingToPay.compareTo(BigDecimal.ZERO) < 0) {
+
+				sharingToPay = BigDecimal.ZERO;
+			}
+
+			// ============================================================
+			// SUMMARY TITLE
+			// ============================================================
+
+			Paragraph summaryTitle = new Paragraph("SUMMARY", summaryHeaderFont);
+
+			summaryTitle.setAlignment(Element.ALIGN_LEFT);
+
+			summaryTitle.setSpacingBefore(10);
+
+			summaryTitle.setSpacingAfter(5);
+
+			document.add(summaryTitle);
+
+			// ============================================================
+			// SUMMARY TABLE
+			// ============================================================
+
+			PdfPTable summaryTable = new PdfPTable(2);
+
+			summaryTable.setWidthPercentage(45);
+
+			summaryTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+			summaryTable.setWidths(new float[] { 65f, 35f });
+
+			// ============================================================
+			// Total Amount to be Collected
+			// ============================================================
+
+			addSummaryRow(summaryTable, "Total Amount Need To Be Collected", formatAmount(grandTotalAmount),
+					summaryLabelFont, summaryValueFont);
+
+			// ============================================================
+			// Discount
+			// ============================================================
+
+			addSummaryRow(summaryTable, "Discount", formatAmount(grandDiscount), summaryLabelFont, summaryValueFont);
+
+			// ============================================================
+			// Total
+			// ============================================================
+
+			addSummaryRow(summaryTable, "Total", formatAmount(totalAfterDiscount), summaryTotalFont, summaryTotalFont);
+
+			// ============================================================
+			// Amount Collected
+			// ============================================================
+
+			addSummaryRow(summaryTable, "Amount Collected", formatAmount(grandCollectedAmount), summaryLabelFont,
+					summaryValueFont);
+
+			// ============================================================
+			// Amount Collected By Dr
+			// ============================================================
+
+			addSummaryRow(summaryTable, "Amount Collected By Dr", formatAmount(grandCollectedByDoctor),
+					summaryLabelFont, summaryValueFont);
+
+			// ============================================================
+			// Sharing Need To Pay
+			// ============================================================
+
+			addSummaryRow(summaryTable, "Sharing Need To Pay", formatAmount(sharingToPay), summaryTotalFont,
+					summaryTotalFont);
+
+			document.add(summaryTable);
+
+			// ============================================================
+			// CLOSE PDF
+			// ============================================================
 
 			document.close();
 
@@ -381,6 +637,32 @@ public class PdfReportService {
 		}
 	}
 
+	private void addSummaryRow(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
+
+		PdfPCell labelCell = new PdfPCell(new Phrase(label, labelFont));
+
+		labelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+		labelCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+		labelCell.setPadding(4);
+
+		labelCell.setBorder(Rectangle.BOX);
+
+		table.addCell(labelCell);
+
+		PdfPCell valueCell = new PdfPCell(new Phrase(value, valueFont));
+
+		valueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+		valueCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+		valueCell.setPadding(4);
+
+		valueCell.setBorder(Rectangle.BOX);
+
+		table.addCell(valueCell);
+	}
 	// ============================================================
 	// CREATE INDIVIDUAL REPORT PDF
 	// ============================================================
@@ -439,7 +721,8 @@ public class PdfReportService {
 			String qrUrl = Constants.SELF_BASE_URL_PROD
 					+ Constants.QR_CODE_URL.replaceFirst("\\{}", String.valueOf(patientId))
 							.replaceFirst("\\{}", reportIds).replaceFirst("\\{}", String.valueOf(headerRequired))
-							.replaceFirst("\\{}", String.valueOf(mdSignRequired)).replaceFirst("\\{}", String.valueOf(printGroup));
+							.replaceFirst("\\{}", String.valueOf(mdSignRequired))
+							.replaceFirst("\\{}", String.valueOf(printGroup));
 
 			qrCode = qrCodeService.generateQRCode(qrUrl, 2, 2);
 		}

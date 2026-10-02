@@ -14,7 +14,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5174","https://path-lab-master-frontend.vercel.app","http://localhost:3000")
+                        .allowedOrigins("http://localhost:5174","https://path-lab-master-frontend.vercel.app","http://localhost:3000","https://pathlabmaster.com")
                         .allowedMethods("*")
                         .allowCredentials(true);
             }

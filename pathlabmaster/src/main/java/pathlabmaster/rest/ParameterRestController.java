@@ -1,7 +1,10 @@
 package pathlabmaster.rest;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,5 +70,18 @@ public class ParameterRestController {
 		System.out.println("Delete Parameter Api Completed : "+Utility.toJsonString(response));
 	    return response;
 	}
-	
+	@GetMapping("/list/testId/{testId}")
+	public Response getParameterListByTestId(@PathVariable Long testId) throws JsonProcessingException {
+		System.out.println("Get getParameterListByTestId Api Started : " + testId);
+		Response response = parameterService.getParameterListByTestId(testId);
+		System.out.println("Get getParameterListByTestId Api Completed : " + Utility.toJsonString(response));
+		return response;
+	}
+	@PostMapping("/create/list")
+	public Response createParameterList(@RequestBody List<ParameterMaster> parameterDetailList) throws JsonProcessingException {
+		System.out.println("Create Parameter Api Started : "+Utility.toJsonString(parameterDetailList));
+		Response response =parameterService.createParameterList(parameterDetailList);
+		System.out.println("Create Parameter Api Completed : "+Utility.toJsonString(response));
+	    return response;
+	}
 }

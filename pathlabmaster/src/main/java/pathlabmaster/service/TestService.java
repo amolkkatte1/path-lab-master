@@ -11,10 +11,12 @@ import pathlabmaster.pojo.TestMaster;
 import pathlabmaster.utility.Response;
 import pathlabmaster.utility.ResponseStatus;
 import pathlabmaster.utility.Utility;
+
 @Service
-public class TestService implements ITestService{
-@Autowired
-private TestMasterRepository testRepo;
+public class TestService implements ITestService {
+	@Autowired
+	private TestMasterRepository testRepo;
+
 	@Override
 	public Response createTest(TestMaster testDetails) {
 		testDetails.setTestId(Utility.generateId());
@@ -24,44 +26,46 @@ private TestMasterRepository testRepo;
 		System.out.println(savedTest.getTestId());
 		return new Response(ResponseStatus.success, 1, "Test created successfully", savedTest);
 	}
+
 	@Override
 	public Response updateTest(TestMaster testDetails) {
 		testDetails.setUpdatedAt(Utility.getCurrentTime());
 		TestMaster savedTest = testRepo.save(testDetails);
-		System.out.println(savedTest.getTestId()); 
+		System.out.println(savedTest.getTestId());
 		return new Response(ResponseStatus.success, 1, "Test Update successfully", savedTest);
-		
+
 	}
+
 	@Override
 	public Response getTestList() {
 		List<TestMaster> testList = testRepo.findAll();
 		return new Response(ResponseStatus.success, 1, "Get Test List successfully", testList);
 	}
+
 	@Override
 	public Response deleteTest(TestMaster testDetails) {
 		Optional<TestMaster> optionalTest = testRepo.findById(testDetails.getTestId());
 		TestMaster test = null;
 		if (optionalTest.isPresent()) {
-		    test = optionalTest.get();
+			test = optionalTest.get();
 		} else {
-		    throw new RuntimeException("Test not found");
+			throw new RuntimeException("Test not found");
 		}
 		testRepo.deleteById(testDetails.getTestId());
 		return new Response(ResponseStatus.success, 1, "Delete Test successfully", test);
 
 	}
+
 	@Override
 	public Response getTest(TestMaster testDetails) {
 		Optional<TestMaster> optionalTest = testRepo.findById(testDetails.getTestId());
-		TestMaster test= null;
+		TestMaster test = null;
 		if (optionalTest.isPresent()) {
-		    test = optionalTest.get();
+			test = optionalTest.get();
 		} else {
-		    throw new RuntimeException("	Test not found");
+			throw new RuntimeException("	Test not found");
 		}
 		return new Response(ResponseStatus.success, 1, "Get Test successfully", test);
-	
-		}
+
 	}
-
-
+}

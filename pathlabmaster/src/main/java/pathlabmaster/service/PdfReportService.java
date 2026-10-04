@@ -1355,7 +1355,7 @@ public class PdfReportService {
 		PdfPTable testTable = new PdfPTable(4);
 
 		testTable.setWidthPercentage(100);
-		testTable.setWidths(new float[] { 40, 15, 10, 35 });
+		testTable.setWidths(new float[] { 40, 15, 15, 30 });
 
 		for (ParameterDetails parameter : testDetails) {
 
@@ -1598,7 +1598,7 @@ public class PdfReportService {
 
 		table.setWidthPercentage(100);
 
-		table.setWidths(new float[] { 40, 15, 10, 35 });
+		table.setWidths(new float[] { 40, 15, 15, 30 });
 
 		addHeaderCell(table, "Test Name", boldFont, Element.ALIGN_LEFT);
 

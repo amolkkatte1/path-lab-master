@@ -424,5 +424,20 @@ public class ReportService implements IReportService {
 		return new Response(ResponseStatus.success, 1, "Get Reports successfully", reportMasterResponseList);
 		
 	}
+
+
+	@Override
+	public void updateReportStatus(ReportMaster reportDetails, String reportIds) {
+		Map<String, Map<String, Integer>> status = reportDetails.getStatus1();
+		for (Map.Entry<String, Map<String, Integer>> outerEntry : status.entrySet()) {
+			String key = outerEntry.getKey();
+			if(reportIds.contains(key.substring(key.lastIndexOf("_") + 1))) {
+				 Map<String, Integer> innerMap = outerEntry.getValue();
+				 innerMap.put("p", 1);
+			}
+		}
+		reportDetails.setStatus1(status);
+		reportMasterRepo.save(reportDetails);
+	}
 	
 }

@@ -681,7 +681,7 @@ public class PdfReportService {
 		// =====================================================
 
 		PatientMaster patientDetails = patientMasterRepo.findById(patientId).orElse(null);
-
+		
 		if (patientDetails == null) {
 			throw new RuntimeException("Patient not found : " + patientId);
 		}
@@ -807,7 +807,7 @@ public class PdfReportService {
 		// =====================================================
 
 		ReportMaster reportDetails = reportMasterRepo.findByPatientIdAndLabId(patientId, patientDetails.getLabId());
-
+		reportService.updateReportStatus(reportDetails,reportIds);
 		if (reportDetails == null) {
 			throw new RuntimeException("Report not found for patient : " + patientId);
 		}

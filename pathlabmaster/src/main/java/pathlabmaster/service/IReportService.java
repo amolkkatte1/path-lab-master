@@ -26,4 +26,6 @@ public interface IReportService {
 	
 	ReportMaster convertReportMasterForUI(ReportMaster reportMaster) throws JsonMappingException, JsonProcessingException;
 
+	void updateReportStatus(ReportMaster reportDetails, String reportIds);
+
 }

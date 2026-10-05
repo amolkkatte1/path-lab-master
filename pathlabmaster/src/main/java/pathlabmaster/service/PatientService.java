@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pathlabmaster.dao.LabMasterRepository;
+import pathlabmaster.dao.PatientFilterRequest;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.pojo.LabMaster;
 import pathlabmaster.pojo.PatientDashboardResponse;
@@ -155,5 +156,16 @@ public class PatientService implements IPatientService {
 	    }
 
 	    return Optional.empty();
+	}
+
+	@Override
+	public Response getPatientByFilter(PatientFilterRequest patientFilterRequest) {
+		List<PatientMaster> patientMaster = patientRepo.filterPatients(patientFilterRequest.getLabId(),
+				patientFilterRequest.getFromDate(), patientFilterRequest.getToDate(),
+				patientFilterRequest.getFirstName(), patientFilterRequest.getLastName(),
+				patientFilterRequest.getPatientId(), patientFilterRequest.getDoctorName(),
+				patientFilterRequest.getDoctorId());
+		return new Response(ResponseStatus.success, 1, "Patient Filter data fetched successfully",
+				patientMaster);
 	}
 }

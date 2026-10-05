@@ -1,5 +1,6 @@
 package pathlabmaster.service;
 
+import pathlabmaster.dao.PatientFilterRequest;
 import pathlabmaster.pojo.PatientMaster;
 import pathlabmaster.utility.Response;
 
@@ -20,6 +21,8 @@ public interface IPatientService {
 	Response getTodayPatientCount(Long labId);
 
 	Response getPatientDashboard(Long labId);
+
+	Response getPatientByFilter(PatientFilterRequest patientFilterRequest);
 
 
 }

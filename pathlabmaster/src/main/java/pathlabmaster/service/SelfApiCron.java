@@ -16,7 +16,7 @@ public class SelfApiCron {
     @Scheduled(cron = "*/30 * * * * *")
     public void callSelfApi() {
 
-        System.out.println("Cron started...");
+//        System.out.println("Cron started...");
 
         try {
             String response = restClient.get()
@@ -24,7 +24,7 @@ public class SelfApiCron {
                     .retrieve()
                     .body(String.class);
 
-            System.out.println("Self API called successfully: " + response);
+//            System.out.println("Self API called successfully: " + response);
 
         } catch (Exception e) {
             System.err.println("Self API call failed: " + e.getMessage());

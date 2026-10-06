@@ -34,7 +34,7 @@ public class HeaderFooterService implements IHeaderFooterService{
 	public Response createHeaderFooter(Long labId, MultipartFile header, MultipartFile footer) throws IOException {
 		HeaderFooter headerFooterExisting = hfRepo.findByLabId(labId);
 		ClientConfig clientConfig = clientConfigRepo.findByLabId(labId);
-		float maxWidth = PageSize.A4.getWidth() - 60;
+		float maxWidth = PageSize.A4.getWidth();
 		float maxHeight = 78 + clientConfig.getReportTopSpace();
 		float maxHeightFooter = clientConfig.getReportBottomSpace();
 		HeaderFooter headerFooter = new HeaderFooter(labId,resizeImage(header,maxWidth,maxHeight),resizeImage(footer, maxWidth, maxHeightFooter));

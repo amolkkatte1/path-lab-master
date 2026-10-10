@@ -21,6 +21,7 @@ public class ClientConfig {
 	private Map<String, List<String>> testKeys;
 	private Integer reportTopSpace;
 	private Integer reportBottomSpace;
+	private Integer lineSpace;
 	private boolean isQrCodeRequired;
 	private Integer qrCodeHorizantalPosition;
 	private Integer qrCodeVerticalPosition;
@@ -119,14 +120,19 @@ public class ClientConfig {
 	public void setColumnCount(Integer columnCount) {
 		this.columnCount = columnCount;
 	}
+	public Integer getLineSpace() {
+		return lineSpace;
+	}
+	public void setLineSpace(Integer lineSpace) {
+		this.lineSpace = lineSpace;
+	}
 	@Override
 	public String toString() {
 		return "ClientConfig [configId=" + configId + ", labId=" + labId + ", testKeys=" + testKeys
-				+ ", reportTopSpace=" + reportTopSpace + ", reportBottomSpace=" + reportBottomSpace
-				+ ", isQrCodeRequired=" + isQrCodeRequired + ", qrCodeHorizantalPosition=" + qrCodeHorizantalPosition
-				+ ", qrCodeVerticalPosition=" + qrCodeVerticalPosition + ", columnCount=" + columnCount
-				+ ", testKeyMapping=" + testKeyMapping + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
-				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+				+ ", reportTopSpace=" + reportTopSpace + ", reportBottomSpace=" + reportBottomSpace + ", lineSpace="
+				+ lineSpace + ", isQrCodeRequired=" + isQrCodeRequired + ", qrCodeHorizantalPosition="
+				+ qrCodeHorizantalPosition + ", qrCodeVerticalPosition=" + qrCodeVerticalPosition + ", columnCount="
+				+ columnCount + ", testKeyMapping=" + testKeyMapping + ", createdBy=" + createdBy + ", updatedBy="
+				+ updatedBy + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
-	
 }

@@ -701,7 +701,7 @@ public class PdfReportService {
 	            clientConfigRepo.findByLabId(patientDetails.getLabId());
 
 	    boolean isQrRequired = false;
-
+	    int lineSpace=3;
 	    int qrCodePositionHorizantal = 2;
 	    int qrCodePositionVertical = 2;
 
@@ -719,6 +719,10 @@ public class PdfReportService {
 	        if (clientConfig.getQrCodeVerticalPosition() != null) {
 	            qrCodePositionVertical =
 	                    clientConfig.getQrCodeVerticalPosition();
+	        }
+	        
+	        if (clientConfig.getLineSpace() != null) {
+	        	lineSpace=clientConfig.getLineSpace();
 	        }
 	    }
 
@@ -1288,14 +1292,8 @@ public class PdfReportService {
 	                );
 	            }
 
-	            PdfPTable testTable =
-	                    createTestTable(
-	                            parametersForTest,
-	                            normalFont,
-	                            boldFont,
-	                            normalFont1,
-	                            boldFont1
-	                    );
+				PdfPTable testTable = createTestTable(parametersForTest, normalFont, boldFont, normalFont1, boldFont1,
+						lineSpace);
 
 	            /*
 	             * ====================================================
@@ -1759,7 +1757,7 @@ public class PdfReportService {
 	// ============================================================
 
 	private PdfPTable createTestTable(List<ParameterDetails> testDetails, Font normalFont, Font boldFont,
-			Font normalFont1, Font boldFont1) {
+			Font normalFont1, Font boldFont1,int lineSpace) {
 
 		PdfPTable testTable = new PdfPTable(4);
 
@@ -1824,8 +1822,8 @@ public class PdfReportService {
 					parameterNameCell.setPaddingTop(0);
 					parameterNameCell.setPaddingBottom(2);
 				} else {
-					parameterNameCell.setPaddingTop(1);
-					parameterNameCell.setPaddingBottom(1);
+					parameterNameCell.setPaddingTop(lineSpace);
+					parameterNameCell.setPaddingBottom(lineSpace);
 				}
 
 				parameterNameCell.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -1893,8 +1891,8 @@ public class PdfReportService {
 
 				descriptionCell.setPaddingLeft(5);
 				descriptionCell.setPaddingRight(5);
-				descriptionCell.setPaddingTop(1);
-				descriptionCell.setPaddingBottom(1);
+				descriptionCell.setPaddingTop(lineSpace);
+				descriptionCell.setPaddingBottom(lineSpace);
 
 				descriptionCell.setHorizontalAlignment(Element.ALIGN_LEFT);
 				descriptionCell.setVerticalAlignment(Element.ALIGN_TOP);
@@ -1931,8 +1929,8 @@ public class PdfReportService {
 					valueCell.setPaddingTop(0);
 					valueCell.setPaddingBottom(0);
 				} else {
-					valueCell.setPaddingTop(1);
-					valueCell.setPaddingBottom(1);
+					valueCell.setPaddingTop(lineSpace);
+					valueCell.setPaddingBottom(lineSpace);
 				}
 
 				valueCell.setHorizontalAlignment(Element.ALIGN_LEFT);

@@ -81,7 +81,7 @@ public class TestService implements ITestService {
 		List<TestMaster> testList = testRepo.findByCreatedBy(20251202131602460L);
 		List<TestMaster> testListNew = new ArrayList<>();
 		List<TestChargesMaster> chargesList = testChargesRepo.findByLabId(labId);
-		if(chargesList!=null) {
+		if(chargesList!=null && !chargesList.isEmpty()) {
 			Map<Long, Integer> chargesMap = new HashMap<>();
 			for(TestChargesMaster test:chargesList) {
 				chargesMap.put(test.getTestChargesId(), test.getTestCharges());
@@ -115,7 +115,7 @@ public class TestService implements ITestService {
 		List<TestMaster> testList = testRepo.findByCreatedBy(20251202131602460L);
 		List<TestChargesMaster> savedData = new ArrayList<>();
 		List<TestChargesMaster> chargesListNew = new ArrayList<>();
-		if(chargesList!=null) {
+		if(chargesList!=null && !chargesList.isEmpty()) {
 			Map<Long, Integer> chargesMap = new HashMap<>();
 			for(TestChargesMaster test:chargesList) {
 				chargesMap.put(test.getTestChargesId(), test.getTestCharges());

@@ -87,7 +87,7 @@ public class TestService implements ITestService {
 				chargesMap.put(test.getTestChargesId(), test.getTestCharges());
 			}
 			for(TestMaster test:testList) {
-				test.setTestCharges(chargesMap.get(test.getTestId()));
+				test.setTestCharges(chargesMap.containsKey(test.getTestId()) ?chargesMap.get(test.getTestId()):test.getTestCharges());
 				test.setLabId(labId);
 				testListNew.add(test);
 			}

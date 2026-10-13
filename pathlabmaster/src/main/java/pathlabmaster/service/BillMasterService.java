@@ -37,8 +37,8 @@ public class BillMasterService implements IBillMasterService {
 	
 	@Override
 	public Response getBillMaster(Long labId) {
-		BillMaster BillMaster = billMasterRepo.findByLabId(labId);
-		return new Response(ResponseStatus.success, 1, "Get BillMaster successfully", BillMaster);
+		List<BillMaster> billMasterList = billMasterRepo.findByLabId(labId);
+		return new Response(ResponseStatus.success, 1, "Get BillMaster successfully", billMasterList);
 	}
 
 	@Override

@@ -8,4 +8,6 @@ import pathlabmaster.pojo.TestMaster;
 
 public interface TestMasterRepository extends JpaRepository<TestMaster, Long> {
 	List<TestMaster> findByTestIdIn(List<Long> testIds);
+
+	List<TestMaster> findByCreatedBy(long l);
 }

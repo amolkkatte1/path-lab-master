@@ -1,7 +1,10 @@
 package pathlabmaster.rest;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,7 +68,32 @@ public class TestRestController {
 		System.out.println("Delete Test Api Completed : "+Utility.toJsonString(response));
 	    return response;
 	}
+
+	@GetMapping("/list/labId/{labId}")
+	public Response getTestListByLabId(@PathVariable Long labId) throws JsonProcessingException {
+		System.out.println("Get Test List Api Started "+labId);
+		Response response =testService.getTestList(labId);
+		System.out.println("Get Test List Api Completed : "+Utility.toJsonString(response));
+	    return response;
+	}
 	
+	@PostMapping("/save")
+	public Response saveTestCharges(@RequestBody List<TestMaster> testDetails) throws JsonProcessingException {
+		System.out.println("Create Test Api Started : " + Utility.toJsonString(testDetails));
+		Response response = testService.saveTestCharges(testDetails);
+		System.out.println("Create Test Api Completed : " + Utility.toJsonString(response));
+		return response;
+
+	}
+	
+	@GetMapping("/add/labId/{labId}")
+	public Response addTestCharges(@PathVariable Long labId) throws JsonProcessingException {
+		System.out.println("addTestCharges Test Api Started : "+labId);
+		Response response = testService.addTestCharges(labId);
+		System.out.println("addTestCharges Test Api Completed : " + Utility.toJsonString(response));
+		return response;
+
+	}
 	
 	
 }

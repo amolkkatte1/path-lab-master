@@ -10,7 +10,7 @@ import pathlabmaster.pojo.BillMaster;
 
 public interface BillMasterRepository extends JpaRepository<BillMaster, Long> {
 
-	BillMaster findByLabId(Long labId);
+	
 
 	@Query("""
 			SELECT p FROM BillMaster p
@@ -24,5 +24,7 @@ public interface BillMasterRepository extends JpaRepository<BillMaster, Long> {
 			@Param("toDate") String toDate);
 
 	BillMaster findByPatientIdAndLabId(Long patientId, Long labId);
+
+	List<BillMaster>  findByLabId(Long labId);
 
 }

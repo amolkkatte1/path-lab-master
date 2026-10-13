@@ -11,12 +11,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
 import com.lowagie.text.Image;
@@ -35,6 +37,7 @@ import pathlabmaster.dao.BillMasterRepository;
 import pathlabmaster.dao.ClientConfigRepository;
 import pathlabmaster.dao.DoctorMasterRepository;
 import pathlabmaster.dao.HeaderFooterRepository;
+import pathlabmaster.dao.LabMasterRepository;
 import pathlabmaster.dao.MdDoctorMasterRepository;
 import pathlabmaster.dao.PatientMasterRepository;
 import pathlabmaster.dao.ReportMasterRepository;
@@ -42,6 +45,7 @@ import pathlabmaster.pojo.BillMaster;
 import pathlabmaster.pojo.ClientConfig;
 import pathlabmaster.pojo.DoctorMaster;
 import pathlabmaster.pojo.HeaderFooter;
+import pathlabmaster.pojo.LabMaster;
 import pathlabmaster.pojo.MdDoctorMaster;
 import pathlabmaster.pojo.ParameterDetails;
 import pathlabmaster.pojo.PatientMaster;
@@ -75,6 +79,8 @@ public class PdfReportService {
 	IReportService reportService;
 	@Autowired
 	private HeaderFooterRepository hfRepo;
+	@Autowired
+	private LabMasterRepository labRepo;
 	// ============================================================
 	// GENERATE PDF
 	// ============================================================
@@ -2864,4 +2870,281 @@ public class PdfReportService {
 
 		return amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
 	}
+
+	
+	
+	public PdfResponse generateBillPdf(Long pId, Long lId) {
+
+	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	    Document document = null;
+
+	    try {
+	        // GET BILL
+	        BillMaster bill = billMasterRepo.findByPatientIdAndLabId(pId, lId);
+
+	        if (bill == null) {
+	            throw new RuntimeException("Bill not found : " + pId);
+	        }
+
+	        // GET PATIENT
+	        PatientMaster patientDetails = patientMasterRepo
+	                .findById(bill.getPatientId())
+	                .orElse(null);
+
+	        if (patientDetails == null) {
+	            throw new RuntimeException(
+	                    "Patient not found : " + bill.getPatientId());
+	        }
+
+	        // GET LAB
+	        LabMaster lab = labRepo.findById(patientDetails.getLabId())
+	                .orElseThrow(() -> new RuntimeException("Lab not found"));
+
+	        // DOCUMENT
+	        document = new Document(PageSize.A4, 30, 30, 25, 25);
+	        PdfWriter.getInstance(document, outputStream);
+	        document.open();
+
+	        // FONTS
+	        Font labNameFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+	        Font titleFont = new Font(Font.HELVETICA, 10, Font.BOLD);
+	        Font headerFont = new Font(Font.HELVETICA, 9, Font.BOLD);
+	        Font normalFont = new Font(Font.HELVETICA, 9, Font.NORMAL);
+	        Font totalFont = new Font(Font.HELVETICA, 9, Font.BOLD);
+
+	        // LAB NAME
+	        String labName = safe(patientDetails.getLabName());
+
+	        if (labName.isBlank()) {
+	            labName = "Pathology Laboratory";
+	        }
+
+	        Paragraph labParagraph = new Paragraph(labName, labNameFont);
+	        labParagraph.setAlignment(Element.ALIGN_CENTER);
+	        labParagraph.setSpacingAfter(5);
+	        document.add(labParagraph);
+
+	        // LAB ADDRESS AND PHONE
+	        String labAddress = safe(lab.getAddress());
+	        String labContact = safe(lab.getPersonalMobileNumber());
+
+	        if (!labAddress.isBlank()) {
+	            Paragraph addressParagraph = new Paragraph(labAddress, headerFont);
+	            addressParagraph.setAlignment(Element.ALIGN_CENTER);
+	            addressParagraph.setSpacingAfter(8);
+	            document.add(addressParagraph);
+	        }
+
+	        if (!labContact.isBlank()) {
+	            Paragraph contactParagraph =
+	                    new Paragraph("Phone No: " + labContact, headerFont);
+	            contactParagraph.setAlignment(Element.ALIGN_CENTER);
+	            contactParagraph.setSpacingAfter(12);
+	            document.add(contactParagraph);
+	        }
+
+	        // LINE ABOVE BILL TITLE
+	        addBillHorizontalLine(document);
+
+	        // BILL TITLE
+	        Paragraph billTitle = new Paragraph("Bill / Receipt", titleFont);
+	        billTitle.setAlignment(Element.ALIGN_CENTER);
+	        billTitle.setSpacingBefore(3);
+	        billTitle.setSpacingAfter(3);
+	        document.add(billTitle);
+
+	        // LINE BELOW BILL TITLE
+	        addBillHorizontalLine(document);
+
+	        // PATIENT DETAILS
+	        PdfPTable patientTable = new PdfPTable(6);
+	        patientTable.setWidthPercentage(100);
+	        patientTable.setWidths(new float[] { 14f, 2f, 39f, 13f, 2f, 30f });
+	        patientTable.setSpacingBefore(5);
+	        patientTable.setSpacingAfter(6);
+
+	        String patientName = (
+	                safe(patientDetails.getPrefix()) + " "
+	                + safe(patientDetails.getFirstName()) + " "
+	                + safe(patientDetails.getMiddleName()) + " "
+	                + safe(patientDetails.getLastName()))
+	                .trim()
+	                .replaceAll("\\s+", " ");
+
+	        // ROW 1: REG NO / BILL NO
+	        addBillCell(patientTable, "Reg No", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(patientTable, ":", normalFont, Element.ALIGN_CENTER);
+	        addBillCell(patientTable,
+	                safe(patientDetails.getPatientId()) + " / OPD",
+	                headerFont, Element.ALIGN_LEFT);
+
+	        addBillCell(patientTable, "Bill No", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(patientTable, ":", normalFont, Element.ALIGN_CENTER);
+	        addBillCell(patientTable, safe(bill.getBillId()),
+	                normalFont, Element.ALIGN_RIGHT);
+
+	        // ROW 2: NAME / SEX / AGE
+	        addBillCell(patientTable, "Name", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(patientTable, ":", normalFont, Element.ALIGN_CENTER);
+	        addBillCell(patientTable, patientName, normalFont, Element.ALIGN_LEFT);
+
+	        addBillCell(patientTable, "Sex / Age", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(patientTable, ":", normalFont, Element.ALIGN_CENTER);
+	        addBillCell(patientTable,
+	                safe(patientDetails.getGender()) + " / "
+	                        + safe(patientDetails.getYear()) + "Y",
+	                normalFont, Element.ALIGN_RIGHT);
+
+	        // ROW 3: REFERRING DOCTOR / DATE
+	        addBillCell(patientTable, "Referred Dr",
+	                headerFont, Element.ALIGN_LEFT);
+	        addBillCell(patientTable, ":", normalFont, Element.ALIGN_CENTER);
+	        addBillCell(patientTable, safe(patientDetails.getDoctorName()),
+	                normalFont, Element.ALIGN_LEFT);
+
+	        addBillCell(patientTable, "Date", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(patientTable, ":", normalFont, Element.ALIGN_CENTER);
+	        addBillCell(patientTable,
+	                safe(Utility.formatDateTime(patientDetails.getCreatedAt())),
+	                normalFont, Element.ALIGN_RIGHT);
+
+	        document.add(patientTable);
+
+	        // LINE ABOVE TEST TABLE
+	        addBillHorizontalLine(document);
+
+	        // TEST TABLE
+	        PdfPTable testTable = new PdfPTable(3);
+	        testTable.setWidthPercentage(100);
+	        testTable.setWidths(new float[] { 7f, 73f, 20f });
+	        testTable.setSpacingBefore(3);
+	        testTable.setSpacingAfter(3);
+
+	        // HEADER ROW
+	        addBillCell(testTable, "Sr No", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(testTable, "Test Name", headerFont, Element.ALIGN_LEFT);
+	        addBillCell(testTable, "Net Amount", headerFont, Element.ALIGN_RIGHT);
+	     // ADD BOTTOM BORDER BELOW HEADER CELLS
+	        for (int i = 0; i < 3; i++) {
+	            PdfPCell cell = testTable.getRow(0).getCells()[i];
+	            cell.setBorder(Rectangle.BOTTOM);
+	            cell.setBorderColorBottom(new java.awt.Color(140, 140, 110));
+	            cell.setBorderWidthBottom(1f);
+	        }
+	        // TEST DETAILS
+	        Map<String, ?> testList = bill.getTestList();
+
+	        if (testList != null && !testList.isEmpty()) {
+	            int srNo = 1;
+
+	            for (Map.Entry<String, ?> entry : testList.entrySet()) {
+	                addBillCell(testTable,
+	                        String.valueOf(srNo++),
+	                        normalFont,
+	                        Element.ALIGN_LEFT);
+
+	                addBillCell(testTable,
+	                        safe(entry.getKey()),
+	                        normalFont,
+	                        Element.ALIGN_LEFT);
+
+	                addBillCell(testTable,
+	                        safe(entry.getValue()),
+	                        normalFont,
+	                        Element.ALIGN_RIGHT);
+	            }
+	        }
+
+	        document.add(testTable);
+
+	        // LINE BELOW TEST TABLE
+	        addBillHorizontalLine(document);
+
+	        // BILL SUMMARY
+	        PdfPTable summaryTable = new PdfPTable(2);
+	        summaryTable.setWidthPercentage(42);
+	        summaryTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
+	        summaryTable.setWidths(new float[] { 65f, 35f });
+	        summaryTable.setSpacingBefore(3);
+
+	        addBillCell(summaryTable, "Total Amount :",
+	                totalFont, Element.ALIGN_RIGHT);
+	        addBillCell(summaryTable, safe(bill.getTotalAmount()),
+	                totalFont, Element.ALIGN_RIGHT);
+
+	        addBillCell(summaryTable, "Payment Received :",
+	                totalFont, Element.ALIGN_RIGHT);
+	        addBillCell(summaryTable, safe(bill.getPaymentReceived()),
+	                totalFont, Element.ALIGN_RIGHT);
+
+	        addBillCell(summaryTable, "Payment Due :",
+	                totalFont, Element.ALIGN_RIGHT);
+	        addBillCell(summaryTable, safe(bill.getPaymentDue()),
+	                totalFont, Element.ALIGN_RIGHT);
+
+	        document.add(summaryTable);
+
+	        // FOOTER
+	        Paragraph preparedBy = new Paragraph("Bill Prepared By", headerFont);
+	        preparedBy.setAlignment(Element.ALIGN_LEFT);
+	        preparedBy.setSpacingBefore(12);
+	        document.add(preparedBy);
+
+	        // CLOSE DOCUMENT
+	        document.close();
+	        document = null;
+
+	        String fileName = "Bill-" + safe(bill.getBillId()) + ".pdf";
+
+	        return new PdfResponse(outputStream.toByteArray(), fileName);
+
+	    } catch (RuntimeException e) {
+	        throw e;
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("Error while generating bill PDF", e);
+
+	    } finally {
+	        if (document != null && document.isOpen()) {
+	            document.close();
+	        }
+	    }
+	}
+
+
+	private void addBillCell(
+	        PdfPTable table,
+	        String text,
+	        Font font,
+	        int alignment) {
+
+	    PdfPCell cell = new PdfPCell(new Phrase(text, font));
+
+	    cell.setBorder(Rectangle.NO_BORDER);
+	    cell.setHorizontalAlignment(alignment);
+	    cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+	    cell.setPaddingTop(3f);
+	    cell.setPaddingBottom(3f);
+	    cell.setPaddingLeft(2f);
+	    cell.setPaddingRight(2f);
+
+	    table.addCell(cell);
+	}
+
+	private void addBillHorizontalLine(Document document) throws DocumentException {
+
+	    PdfPTable lineTable = new PdfPTable(1);
+	    lineTable.setWidthPercentage(100);
+
+	    PdfPCell lineCell = new PdfPCell(new Phrase(""));
+	    lineCell.setBorder(Rectangle.BOTTOM);
+	    lineCell.setBorderColorBottom(new java.awt.Color(140, 140, 110));
+	    lineCell.setBorderWidthBottom(1f);
+	    lineCell.setFixedHeight(2f);
+	    lineCell.setPadding(0);
+
+	    lineTable.addCell(lineCell);
+	    document.add(lineTable);
+	}
+	
 }

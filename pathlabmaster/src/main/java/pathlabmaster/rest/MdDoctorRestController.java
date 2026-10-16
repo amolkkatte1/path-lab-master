@@ -44,9 +44,13 @@ public class MdDoctorRestController {
 	}
 	
 	@PostMapping("/update")
-	public Response updateMdDoctor(@RequestBody MdDoctorMaster MdDoctorDetails) throws JsonProcessingException {
-		System.out.println("Update MdDoctor Api Started : "+Utility.toJsonString(MdDoctorDetails));
-		Response response =mdDoctorService.updateMdDoctor(MdDoctorDetails);
+	public Response updateMdDoctor(@RequestPart("doctor") String doctorJson,@RequestPart(value = "signature", required = false) MultipartFile signature) throws Exception {
+		MdDoctorMaster doctor = new ObjectMapper().readValue(doctorJson, MdDoctorMaster.class);
+		if (signature != null && !signature.isEmpty()) {
+			doctor.setSignImage(signature.getBytes());
+		}
+		System.out.println("Update MdDoctor Api Started : "+Utility.toJsonString(doctor));
+		Response response =mdDoctorService.updateMdDoctor(doctor);
 		System.out.println("Update MdDoctor Api Completed : "+Utility.toJsonString(response));
 	    return response;
 	}

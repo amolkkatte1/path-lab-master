@@ -1775,6 +1775,11 @@ public class PdfReportService {
 			if (parameter.getSequence() != null && parameter.getSequence() == 1) {
 				continue;
 			}
+			
+			if (parameter.getSequence() != null && parameter.getIsValueRequired() && parameter.getSequence() > 2
+					&& (parameter.getValue() == null || parameter.getValue().trim().isEmpty())) {
+				continue;
+			}
 
 			String parameterName = safe(parameter.getParameterName());
 			String value = safe(parameter.getValue());
